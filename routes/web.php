@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AiRegionGeneratorController;
+use App\Http\Controllers\Admin\AiSuggestionController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LabelController as AdminLabelController;
@@ -60,6 +61,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('ki-regionsgenerator', [AiRegionGeneratorController::class, 'create'])->name('ai-region-generator.create');
         Route::post('ki-regionsgenerator', [AiRegionGeneratorController::class, 'store'])->name('ai-region-generator.store');
+
+        Route::get('ki-vorschlaege', [AiSuggestionController::class, 'index'])->name('ai-suggestions.index');
+        Route::post('ki-vorschlaege/{region}/freigeben', [AiSuggestionController::class, 'approve'])->name('ai-suggestions.approve');
+        Route::post('ki-vorschlaege/{region}/ablehnen', [AiSuggestionController::class, 'reject'])->name('ai-suggestions.reject');
 
         Route::get('reisetipps', [AdminTravelTipController::class, 'index'])->name('tips.index');
         Route::get('reisetipps/erstellen', [AdminTravelTipController::class, 'create'])->name('tips.create');
