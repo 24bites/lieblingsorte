@@ -29,7 +29,7 @@ class TrierSeeder extends Seeder
                 'federal_state' => 'Rheinland-Pfalz',
                 'short_description' => 'Älteste Stadt Deutschlands mit römischem Erbe an der Mosel',
                 'description' => "Trier blickt auf über 2.000 Jahre Geschichte zurück und gilt als älteste Stadt Deutschlands. Als einstige Kaiserresidenz des Römischen Reiches hinterließ die Stadt ein einzigartiges Ensemble antiker Bauwerke, das heute zum UNESCO-Weltkulturerbe zählt – allen voran die Porta Nigra, das größte erhaltene Stadttor nördlich der Alpen.\n\nZwischen wuchtigen Ruinen, einer lebendigen Altstadt und den sanften Weinbergen entlang der Mosel verbindet Trier Antike und Moderne auf kleinem Raum. Die Nähe zu Luxemburg und den Moseltälern macht die Stadt zu einem idealen Ausgangspunkt für Tagesausflüge in die Region.",
-                'hero_image' => 'regions/trier/trier-hero-1.jpg',
+                'hero_image' => 'regions/trier/trier-1.jpg',
                 'latitude' => 49.7596,
                 'longitude' => 6.6428,
                 'best_travel_time' => 'April bis Oktober, Weihnachtsmarkt im Dezember',
@@ -42,8 +42,8 @@ class TrierSeeder extends Seeder
         );
 
         $region->media()->delete();
-        MediaSeederHelper::attach($region, 'regions/trier', 'trier-hero', 'town', $this->palette, 'Römische Porta Nigra in Trier', true, 0);
-        MediaSeederHelper::attach($region, 'regions/trier', 'trier-hero', 'canyon', $this->palette, 'Moseltal bei Trier', false, 1);
+        MediaSeederHelper::attach($region, 'regions/trier', 'trier', 'town', $this->palette, 'Römische Porta Nigra in Trier', true, 0);
+        MediaSeederHelper::attach($region, 'regions/trier', 'trier', 'canyon', $this->palette, 'Moseltal bei Trier', false, 1);
 
         $region->labels()->sync(Label::whereIn('slug', ['kultur', 'familie', 'geheimtipp'])->pluck('id'));
 

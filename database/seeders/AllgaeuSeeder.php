@@ -29,7 +29,7 @@ class AllgaeuSeeder extends Seeder
                 'federal_state' => 'Bayern',
                 'short_description' => 'Alpenpanorama, Königsschlösser und Bergseen',
                 'description' => "Das Allgäu vereint majestätische Alpengipfel, sanfte Hügellandschaften und die weltberühmten Königsschlösser Neuschwanstein und Hohenschwangau. Zwischen Füssen, Oberstdorf und Kempten wechseln sich glasklare Bergseen, tosende Wasserfälle und urige Almhütten ab.\n\nDie Region ist bekannt für ihre Käsereitradition, gut ausgebaute Wander- und Radwege sowie eine hohe Dichte an familienfreundlichen Ausflugszielen. Vom gemütlichen Uferspaziergang bis zur alpinen Gipfeltour ist im Allgäu für jeden Anspruch etwas dabei.",
-                'hero_image' => 'regions/allgaeu/hero-1.jpg',
+                'hero_image' => 'regions/allgaeu/allgaeu-1.jpg',
                 'latitude' => 47.5580,
                 'longitude' => 10.2200,
                 'best_travel_time' => 'Juni bis September für Wandern, Dezember bis März für Wintersport',
@@ -42,8 +42,8 @@ class AllgaeuSeeder extends Seeder
         );
 
         $region->media()->delete();
-        MediaSeederHelper::attach($region, 'regions/allgaeu', 'allgaeu-hero', 'mountains', $this->palette, 'Alpenpanorama mit grünen Wiesen im Allgäu', true, 0);
-        MediaSeederHelper::attach($region, 'regions/allgaeu', 'allgaeu-hero', 'castle', $this->palette, 'Schlosssilhouette vor Bergkulisse im Allgäu', false, 1);
+        MediaSeederHelper::attach($region, 'regions/allgaeu', 'allgaeu', 'mountains', $this->palette, 'Alpenpanorama mit grünen Wiesen im Allgäu', true, 0);
+        MediaSeederHelper::attach($region, 'regions/allgaeu', 'allgaeu', 'castle', $this->palette, 'Schlosssilhouette vor Bergkulisse im Allgäu', false, 1);
 
         $region->labels()->sync(Label::whereIn('slug', ['natur', 'wandern', 'familie', 'kultur'])->pluck('id'));
 

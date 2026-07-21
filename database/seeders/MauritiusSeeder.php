@@ -29,7 +29,7 @@ class MauritiusSeeder extends Seeder
                 'federal_state' => null,
                 'short_description' => 'Tropische Trauminsel mit türkisen Lagunen und bunter Kultur',
                 'description' => "Mauritius liegt rund 2.000 Kilometer vor der Küste Ostafrikas im Indischen Ozean und gilt als eine der schönsten Trauminseln der Welt. Türkisfarbene Lagunen, kilometerlange Palmenstrände und ein fast durchgängig umgebendes Korallenriff prägen die Küste, während das Inselinnere mit schroffen Vulkanbergen und dichtem Regenwald überrascht.\n\nDie bewegte Kolonialgeschichte spiegelt sich in einer außergewöhnlich vielfältigen Kultur aus indischen, afrikanischen, chinesischen und europäischen Einflüssen wider, die sich in Küche, Musik und Festen der Insel zeigt. Zwischen Wanderungen im Nationalpark Black River Gorges, Bootsausflügen zu vorgelagerten Inseln und der bunten Geologie von Chamarel bietet Mauritius weit mehr als nur Strandurlaub.",
-                'hero_image' => 'regions/mauritius/mauritius-hero-1.jpg',
+                'hero_image' => 'regions/mauritius/mauritius-1.jpg',
                 'latitude' => -20.2760,
                 'longitude' => 57.5751,
                 'best_travel_time' => 'Mai bis Dezember (Trockenzeit), ganzjährig warm',
@@ -42,8 +42,8 @@ class MauritiusSeeder extends Seeder
         );
 
         $region->media()->delete();
-        MediaSeederHelper::attach($region, 'regions/mauritius', 'mauritius-hero', 'lake', $this->palette, 'Türkise Lagune auf Mauritius', true, 0);
-        MediaSeederHelper::attach($region, 'regions/mauritius', 'mauritius-hero', 'mountains', $this->palette, 'Berglandschaft im Inselinneren von Mauritius', false, 1);
+        MediaSeederHelper::attach($region, 'regions/mauritius', 'mauritius', 'lake', $this->palette, 'Türkise Lagune auf Mauritius', true, 0);
+        MediaSeederHelper::attach($region, 'regions/mauritius', 'mauritius', 'mountains', $this->palette, 'Berglandschaft im Inselinneren von Mauritius', false, 1);
 
         $region->labels()->sync(Label::whereIn('slug', ['natur', 'sommer', 'seen'])->pluck('id'));
 

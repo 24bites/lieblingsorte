@@ -29,7 +29,7 @@ class LissabonSeeder extends Seeder
                 'federal_state' => null,
                 'short_description' => 'Hügelige Hafenstadt mit Azulejos, Trams und Meerblick',
                 'description' => "Lissabon erstreckt sich über sieben Hügel am Ufer des Tejo und begeistert mit einer einzigartigen Mischung aus maurischem Erbe, Entdeckerzeit-Geschichte und moderner Lebensfreude. Bunte Azulejo-Fliesen, knarrende Straßenbahnen und schmale Gassen im Viertel Alfama prägen das Stadtbild ebenso wie die weiten Ausblicke von zahlreichen Miradouros.\n\nAls Ausgangspunkt der großen portugiesischen Seefahrten hinterließ das Zeitalter der Entdeckungen prächtige Bauwerke wie den Torres de Belém und das Kloster Jerónimos. Gleichzeitig zeigt sich Lissabon in Vierteln wie der LX Factory kreativ und modern, während der nahe Küstenort Sintra mit seinen Märchenschlössern einen lohnenden Tagesausflug bietet.",
-                'hero_image' => 'regions/lissabon/lissabon-hero-1.jpg',
+                'hero_image' => 'regions/lissabon/lissabon-1.jpg',
                 'latitude' => 38.7223,
                 'longitude' => -9.1393,
                 'best_travel_time' => 'März bis Juni und September bis Oktober',
@@ -42,8 +42,8 @@ class LissabonSeeder extends Seeder
         );
 
         $region->media()->delete();
-        MediaSeederHelper::attach($region, 'regions/lissabon', 'lissabon-hero', 'town', $this->palette, 'Blick über die Dächer von Lissabon', true, 0);
-        MediaSeederHelper::attach($region, 'regions/lissabon', 'lissabon-hero', 'canyon', $this->palette, 'Tejo-Ufer in Lissabon', false, 1);
+        MediaSeederHelper::attach($region, 'regions/lissabon', 'lissabon', 'town', $this->palette, 'Blick über die Dächer von Lissabon', true, 0);
+        MediaSeederHelper::attach($region, 'regions/lissabon', 'lissabon', 'canyon', $this->palette, 'Tejo-Ufer in Lissabon', false, 1);
 
         $region->labels()->sync(Label::whereIn('slug', ['kultur', 'sommer', 'familie'])->pluck('id'));
 

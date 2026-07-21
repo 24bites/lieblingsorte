@@ -29,7 +29,7 @@ class SuedtirolSeeder extends Seeder
                 'federal_state' => 'Trentino-Südtirol',
                 'short_description' => 'Dolomiten, Weinberge und italienische Lebensfreude',
                 'description' => "Südtirol vereint schroffe Dolomitengipfel, sonnige Weinhänge und historische Altstädte auf engstem Raum. Zwischen Bozen, Meran und den Ladiner Tälern wechseln sich alpine Bergseen, jahrhundertealte Burgen und erstklassige Kulinarik ab. Wer hier unterwegs ist, findet an einem Vormittag ruhige Waalwege durch Apfelplantagen und am Nachmittag Panoramen, die zu den spektakulärsten der Alpen zählen.\n\nDie Region punktet mit einer außergewöhnlichen Dichte an gut ausgeschilderten Wander- und Almwegen, die für Familien ebenso geeignet sind wie für ambitionierte Bergsteiger. Dazu kommt eine lebendige Kulturszene aus Südtiroler und italienischer Tradition, die sich in Küche, Architektur und Festen widerspiegelt.",
-                'hero_image' => 'regions/suedtirol/hero-1.jpg',
+                'hero_image' => 'regions/suedtirol/suedtirol-1.jpg',
                 'latitude' => 46.4983,
                 'longitude' => 11.3548,
                 'best_travel_time' => 'Mai bis Oktober für Wandern, Dezember bis März für Wintersport',
@@ -42,8 +42,8 @@ class SuedtirolSeeder extends Seeder
         );
 
         $region->media()->delete();
-        MediaSeederHelper::attach($region, 'regions/suedtirol', 'suedtirol-hero', 'mountains', $this->palette, 'Dolomitenpanorama mit Almwiesen in Südtirol', true, 0);
-        MediaSeederHelper::attach($region, 'regions/suedtirol', 'suedtirol-hero', 'lake', $this->palette, 'Bergsee vor Dolomitenkulisse in Südtirol', false, 1);
+        MediaSeederHelper::attach($region, 'regions/suedtirol', 'suedtirol', 'mountains', $this->palette, 'Dolomitenpanorama mit Almwiesen in Südtirol', true, 0);
+        MediaSeederHelper::attach($region, 'regions/suedtirol', 'suedtirol', 'lake', $this->palette, 'Bergsee vor Dolomitenkulisse in Südtirol', false, 1);
 
         $region->labels()->sync(Label::whereIn('slug', ['natur', 'wandern', 'familie', 'kultur'])->pluck('id'));
 

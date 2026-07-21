@@ -29,7 +29,7 @@ class LuxemburgSeeder extends Seeder
                 'federal_state' => null,
                 'short_description' => 'Festungsstadt mit Kasematten, Burgen und dem Mullerthal',
                 'description' => "Luxemburg überrascht mit einer spektakulären Lage: Die Altstadt und die historischen Festungsanlagen thronen auf schroffen Felsen hoch über den Tälern von Alzette und Petrusse. Die Kasematten, ein weitläufiges unterirdisches Gangsystem, machten die Stadt einst zu einer der stärksten Festungen Europas und zählen heute zum UNESCO-Weltkulturerbe.\n\nÜber die Stadtgrenzen hinaus lockt das Großherzogtum mit malerischen Burgen wie Vianden und Beaufort, dem als „Kleine Luxemburger Schweiz“ bekannten Mullerthal mit seinen Felsformationen und Wasserfällen sowie den Weinorten entlang der Mosel. Die kompakte Größe des Landes macht viele Ausflugsziele in kurzer Zeit erreichbar.",
-                'hero_image' => 'regions/luxemburg/luxemburg-hero-1.jpg',
+                'hero_image' => 'regions/luxemburg/luxemburg-1.jpg',
                 'latitude' => 49.6116,
                 'longitude' => 6.1319,
                 'best_travel_time' => 'April bis Oktober',
@@ -42,8 +42,8 @@ class LuxemburgSeeder extends Seeder
         );
 
         $region->media()->delete();
-        MediaSeederHelper::attach($region, 'regions/luxemburg', 'luxemburg-hero', 'castle', $this->palette, 'Altstadt und Festung von Luxemburg', true, 0);
-        MediaSeederHelper::attach($region, 'regions/luxemburg', 'luxemburg-hero', 'canyon', $this->palette, 'Mullerthal in Luxemburg', false, 1);
+        MediaSeederHelper::attach($region, 'regions/luxemburg', 'luxemburg', 'castle', $this->palette, 'Altstadt und Festung von Luxemburg', true, 0);
+        MediaSeederHelper::attach($region, 'regions/luxemburg', 'luxemburg', 'canyon', $this->palette, 'Mullerthal in Luxemburg', false, 1);
 
         $region->labels()->sync(Label::whereIn('slug', ['kultur', 'natur', 'wandern'])->pluck('id'));
 

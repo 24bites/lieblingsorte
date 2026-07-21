@@ -29,7 +29,7 @@ class FaroSeeder extends Seeder
                 'federal_state' => 'Algarve',
                 'short_description' => 'Naturparadies und historische Altstadt an der Ostalgarve',
                 'description' => "Faro ist das Tor zur Algarve und überrascht viele Besucher mit einer charmanten, wenig überlaufenen Altstadt hinter alten Stadtmauern. Anders als die touristischen Küstenorte weiter westlich punktet Faro mit ruhiger Authentizität, einer beeindruckenden Kathedrale und engen Kopfsteinpflastergassen.\n\nVor der Stadt erstreckt sich der Naturpark Ria Formosa, eine einzigartige Lagunenlandschaft mit vorgelagerten Sandinseln, die per Boot erreichbar sind. Die Region um Faro verbindet unberührte Natur, feine Sandstrände, römische Ruinen und malerische Nachbarstädte wie Olhão und Tavira zu einem vielseitigen Reiseziel abseits des Massentourismus.",
-                'hero_image' => 'regions/faro/faro-hero-1.jpg',
+                'hero_image' => 'regions/faro/faro-1.jpg',
                 'latitude' => 37.0134,
                 'longitude' => -7.9344,
                 'best_travel_time' => 'April bis Juni und September bis Oktober',
@@ -42,8 +42,8 @@ class FaroSeeder extends Seeder
         );
 
         $region->media()->delete();
-        MediaSeederHelper::attach($region, 'regions/faro', 'faro-hero', 'town', $this->palette, 'Altstadt von Faro an der Algarve', true, 0);
-        MediaSeederHelper::attach($region, 'regions/faro', 'faro-hero', 'lake', $this->palette, 'Ria Formosa Lagune bei Faro', false, 1);
+        MediaSeederHelper::attach($region, 'regions/faro', 'faro', 'town', $this->palette, 'Altstadt von Faro an der Algarve', true, 0);
+        MediaSeederHelper::attach($region, 'regions/faro', 'faro', 'lake', $this->palette, 'Ria Formosa Lagune bei Faro', false, 1);
 
         $region->labels()->sync(Label::whereIn('slug', ['natur', 'sommer', 'seen'])->pluck('id'));
 

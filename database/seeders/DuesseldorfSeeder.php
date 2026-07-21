@@ -29,7 +29,7 @@ class DuesseldorfSeeder extends Seeder
                 'federal_state' => 'Nordrhein-Westfalen',
                 'short_description' => 'Modemetropole am Rhein mit Altstadt und Kunstszene',
                 'description' => "Düsseldorf verbindet rheinische Geselligkeit mit internationalem Flair. Die Altstadt gilt mit ihrer hohen Dichte an Brauhäusern als „längste Theke der Welt“, während die Königsallee mit ihren Luxusboutiquen und dem historischen Stadtgraben für Eleganz steht.\n\nAls Kunst- und Modestadt beherbergt Düsseldorf bedeutende Museen wie die Kunstsammlung Nordrhein-Westfalen und ein pulsierendes Ausgehviertel im Medienhafen mit spektakulärer moderner Architektur. Grünflächen wie der Hofgarten und der Nordpark mit seinem japanischen Garten bieten ruhige Rückzugsorte mitten in der Stadt.",
-                'hero_image' => 'regions/duesseldorf/duesseldorf-hero-1.jpg',
+                'hero_image' => 'regions/duesseldorf/duesseldorf-1.jpg',
                 'latitude' => 51.2277,
                 'longitude' => 6.7735,
                 'best_travel_time' => 'Ganzjährig, besonders Mai bis September',
@@ -42,8 +42,8 @@ class DuesseldorfSeeder extends Seeder
         );
 
         $region->media()->delete();
-        MediaSeederHelper::attach($region, 'regions/duesseldorf', 'duesseldorf-hero', 'town', $this->palette, 'Skyline von Düsseldorf am Rhein', true, 0);
-        MediaSeederHelper::attach($region, 'regions/duesseldorf', 'duesseldorf-hero', 'canyon', $this->palette, 'Rheinufer in Düsseldorf', false, 1);
+        MediaSeederHelper::attach($region, 'regions/duesseldorf', 'duesseldorf', 'town', $this->palette, 'Skyline von Düsseldorf am Rhein', true, 0);
+        MediaSeederHelper::attach($region, 'regions/duesseldorf', 'duesseldorf', 'canyon', $this->palette, 'Rheinufer in Düsseldorf', false, 1);
 
         $region->labels()->sync(Label::whereIn('slug', ['kultur', 'familie', 'kulinarik'])->pluck('id'));
 
