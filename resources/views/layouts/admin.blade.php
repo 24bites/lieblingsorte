@@ -7,6 +7,10 @@
     <title>@yield('title', 'Admin') | Lieblingsorte</title>
     <meta name="robots" content="noindex, nofollow">
 
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
