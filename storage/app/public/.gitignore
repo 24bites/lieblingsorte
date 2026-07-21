@@ -1,0 +1,3 @@
+# Unlike Laravel's default, this project intentionally versions its public media
+# (real Wikimedia Commons photos + admin-generated images) so a fresh git clone
+# reproduces the site's current image state without depending on external fetches.
