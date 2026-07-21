@@ -100,6 +100,10 @@ class TravelTipController extends Controller
             'ai_prompt' => ['required', 'string', 'max:600'],
         ]);
 
+        // Image generation can take longer than PHP's default max_execution_time
+        // (commonly 30s on shared php.ini configs).
+        set_time_limit(180);
+
         try {
             $contents = OpenAiImageGenerator::generate($request->string('ai_prompt')->toString());
         } catch (Throwable $e) {

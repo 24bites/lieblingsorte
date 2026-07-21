@@ -27,6 +27,10 @@ class AiRegionGeneratorController extends Controller
 
         $tipCount = $validated['tip_count'] ?? 15;
 
+        // Drafting a full region with up to 20 tips can take longer than PHP's
+        // default max_execution_time (commonly 30s on shared php.ini configs).
+        set_time_limit(240);
+
         try {
             $draft = OpenAiRegionDrafter::draft($validated['place_name'], $tipCount);
         } catch (Throwable $e) {
