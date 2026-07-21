@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Media;
 use App\Models\Region;
+use App\Support\AiCronSettings;
 use App\Support\AiImagePromptBuilder;
 use App\Support\ImageUploadService;
 use App\Support\OpenAiImageGenerator;
@@ -27,6 +28,12 @@ class ReplaceMediaWithAiImages extends Command
 
     public function handle(): int
     {
+        if (! AiCronSettings::enabled()) {
+            $this->info('KI-Crons sind in den Einstellungen deaktiviert - überspringe.');
+
+            return self::SUCCESS;
+        }
+
         if (! OpenAiImageGenerator::isConfigured()) {
             $this->warn('OPENAI_API_KEY ist nicht konfiguriert - überspringe.');
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Support\AiCronSettings;
 use App\Support\OpenAiConfig;
 use Illuminate\Http\Request;
 
@@ -22,8 +23,9 @@ class SettingController extends Controller
         // only whether one exists, and a short preview built from a decrypt-only helper.
         $openaiKeyPreview = OpenAiConfig::preview();
         $openaiKeyConfigured = $openaiKeyPreview !== null;
+        $aiCronsEnabled = AiCronSettings::enabled();
 
-        return view('admin.settings.edit', compact('settings', 'openaiKeyConfigured', 'openaiKeyPreview'));
+        return view('admin.settings.edit', compact('settings', 'openaiKeyConfigured', 'openaiKeyPreview', 'aiCronsEnabled'));
     }
 
     public function update(Request $request)
@@ -39,6 +41,7 @@ class SettingController extends Controller
             'ad_slot_in_content' => ['nullable', 'string', 'max:5000'],
             'openai_api_key' => ['nullable', 'string', 'max:255'],
             'remove_openai_api_key' => ['nullable', 'boolean'],
+            'ai_crons_enabled' => ['nullable', 'boolean'],
         ]);
 
         // A blank field means "leave unchanged" — the field is never pre-filled with the real secret,
@@ -48,7 +51,9 @@ class SettingController extends Controller
         } elseif (filled($data['openai_api_key'] ?? null)) {
             OpenAiConfig::store(trim($data['openai_api_key']));
         }
-        unset($data['openai_api_key'], $data['remove_openai_api_key']);
+        unset($data['openai_api_key'], $data['remove_openai_api_key'], $data['ai_crons_enabled']);
+
+        AiCronSettings::setEnabled($request->boolean('ai_crons_enabled'));
 
         foreach ($data as $key => $value) {
             Setting::set($key, $value ?? '');

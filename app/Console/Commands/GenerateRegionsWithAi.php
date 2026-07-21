@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Region;
+use App\Support\AiCronSettings;
 use App\Support\OpenAiRegionDrafter;
 use App\Support\RegionDraftPersister;
 use Illuminate\Console\Command;
@@ -25,6 +26,12 @@ class GenerateRegionsWithAi extends Command
 
     public function handle(): int
     {
+        if (! AiCronSettings::enabled()) {
+            $this->info('KI-Crons sind in den Einstellungen deaktiviert - überspringe.');
+
+            return self::SUCCESS;
+        }
+
         if (! OpenAiRegionDrafter::isConfigured()) {
             $this->warn('OPENAI_API_KEY ist nicht konfiguriert - überspringe.');
 

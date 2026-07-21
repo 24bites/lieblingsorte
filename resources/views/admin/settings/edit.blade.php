@@ -59,6 +59,15 @@
                     </label>
                 @endif
             </div>
+            <div class="pt-1 border-t border-sand-100">
+                <label class="flex items-center gap-2 text-sm text-forest-700 mt-4">
+                    <input type="checkbox" name="ai_crons_enabled" value="1" {{ old('ai_crons_enabled', $aiCronsEnabled) ? 'checked' : '' }} class="rounded text-forest-600">
+                    Automatische KI-Crons aktiv (Bilder ersetzen, neue Regionen vorschlagen)
+                </label>
+                <p class="text-xs text-forest-500 mt-1">
+                    Deaktivieren pausiert <code>images:ai-replace</code> und <code>regions:auto-generate</code> sofort, ohne Deployment.
+                </p>
+            </div>
         </div>
 
         <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-5">
