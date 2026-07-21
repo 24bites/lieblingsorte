@@ -13,9 +13,9 @@ use Illuminate\Support\Facades\DB;
  */
 class RegionDraftPersister
 {
-    public static function persist(array $draft): Region
+    public static function persist(array $draft, bool $aiGenerated = false): Region
     {
-        return DB::transaction(function () use ($draft) {
+        return DB::transaction(function () use ($draft, $aiGenerated) {
             $region = Region::create([
                 'name' => $draft['name'],
                 'type' => in_array($draft['type'] ?? null, ['Region', 'Stadt', 'Insel', 'Reisegebiet'], true)
@@ -31,6 +31,7 @@ class RegionDraftPersister
                 'seo_title' => $draft['seo_title'] ?? null,
                 'seo_description' => $draft['seo_description'] ?? null,
                 'is_published' => false,
+                'ai_generated' => $aiGenerated,
                 'sort_order' => (int) (Region::max('sort_order')) + 1,
             ]);
 

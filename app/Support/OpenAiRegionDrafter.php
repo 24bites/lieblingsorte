@@ -112,4 +112,57 @@ class OpenAiRegionDrafter
 
         return $data;
     }
+
+    /**
+     * Asks for a single new, real travel destination not already in
+     * $avoidNames (existing or previously rejected regions), for the
+     * regions:auto-generate cron. Returns null if OpenAI can't produce a
+     * usable suggestion.
+     */
+    public static function suggestPlaceName(array $avoidNames): ?string
+    {
+        $apiKey = OpenAiConfig::apiKey();
+
+        if (blank($apiKey)) {
+            throw new RuntimeException('OPENAI_API_KEY ist nicht konfiguriert.');
+        }
+
+        $avoidList = empty($avoidNames) ? 'keine' : implode(', ', $avoidNames);
+
+        $response = Http::withToken($apiKey)
+            ->timeout(60)
+            ->retry(2, 1000)
+            ->post('https://api.openai.com/v1/chat/completions', [
+                'model' => config('services.openai.text_model', 'gpt-4o-mini'),
+                'response_format' => ['type' => 'json_object'],
+                'temperature' => 0.9,
+                'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' => 'Du bist ein erfahrener deutschsprachiger Reiseredakteur für ein Reiseportal. '
+                            .'Du schlägst ausschließlich echte, existierende Reiseziele vor (Regionen, Städte, '
+                            .'Inseln), niemals erfundene Orte.',
+                    ],
+                    [
+                        'role' => 'user',
+                        'content' => 'Schlage genau EIN neues, attraktives Reiseziel für das Portal vor, das noch '
+                            .'nicht in dieser Liste bereits vorhandener oder abgelehnter Ziele enthalten ist: '
+                            ."{$avoidList}. Antworte ausschließlich mit einem JSON-Objekt der Form "
+                            .'{"name": "Ortsname, Land"}.',
+                    ],
+                ],
+            ]);
+
+        if ($response->failed()) {
+            throw new RuntimeException(
+                'OpenAI-Anfrage fehlgeschlagen: '.$response->json('error.message', (string) $response->status())
+            );
+        }
+
+        $content = $response->json('choices.0.message.content');
+        $data = json_decode((string) $content, true);
+        $name = is_array($data) ? trim((string) ($data['name'] ?? '')) : '';
+
+        return $name !== '' ? $name : null;
+    }
 }

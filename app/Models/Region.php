@@ -31,6 +31,8 @@ class Region extends Model
         'seo_title',
         'seo_description',
         'is_published',
+        'ai_generated',
+        'rejected_at',
         'sort_order',
     ];
 
@@ -38,6 +40,8 @@ class Region extends Model
     {
         return [
             'is_published' => 'boolean',
+            'ai_generated' => 'boolean',
+            'rejected_at' => 'datetime',
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
         ];
@@ -71,6 +75,11 @@ class Region extends Model
     public function scopePublished($query)
     {
         return $query->where('is_published', true);
+    }
+
+    public function scopePendingAiReview($query)
+    {
+        return $query->where('ai_generated', true)->where('is_published', false)->whereNull('rejected_at');
     }
 
     public function getRouteKeyName(): string
