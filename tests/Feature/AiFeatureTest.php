@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AiFeatureTest extends TestCase
@@ -44,6 +45,7 @@ class AiFeatureTest extends TestCase
 
     public function test_admin_can_generate_an_ai_image_for_a_region(): void
     {
+        Storage::fake('public');
         $this->fakeApiKey();
         $fakeImage = base64_encode('fake-png-bytes');
         Http::fake([
@@ -90,6 +92,7 @@ class AiFeatureTest extends TestCase
 
     public function test_admin_can_generate_an_ai_image_for_a_travel_tip(): void
     {
+        Storage::fake('public');
         $this->fakeApiKey();
         $fakeImage = base64_encode('fake-png-bytes');
         Http::fake([

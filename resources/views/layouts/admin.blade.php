@@ -59,6 +59,9 @@
                         ['route' => 'admin.media.index', 'label' => 'Medien', 'active' => 'admin.media.*'],
                         ['route' => 'admin.settings.edit', 'label' => 'Einstellungen', 'active' => 'admin.settings.*'],
                     ];
+                    if (auth()->user()?->isAdmin()) {
+                        $navItems[] = ['route' => 'admin.users.index', 'label' => 'Benutzer', 'active' => 'admin.users.*'];
+                    }
                 @endphp
                 @foreach ($navItems as $item)
                     <a href="{{ route($item['route']) }}" class="flex items-center gap-3 rounded-xl px-3 py-2.5 transition {{ request()->routeIs($item['active']) ? 'bg-forest-700 text-white' : 'text-sand-200 hover:bg-forest-800' }}">

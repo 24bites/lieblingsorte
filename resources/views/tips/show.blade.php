@@ -29,9 +29,13 @@
 @endpush
 
 @section('content')
+    @if ($preview ?? false)
+        <x-preview-banner :is-published="$tip->is_published" />
+    @endif
+
     <x-breadcrumbs :items="[
         ['label' => 'Startseite', 'url' => route('home')],
-        ['label' => $region->name, 'url' => route('regions.show', $region)],
+        ['label' => $region->name, 'url' => ($preview ?? false) ? route('admin.regions.preview', $region) : route('regions.show', $region)],
         ['label' => $tip->title, 'url' => null],
     ]" />
 

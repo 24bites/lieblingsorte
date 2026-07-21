@@ -25,11 +25,13 @@ class RegionController extends Controller
         return view('regions.index', compact('regions'));
     }
 
-    public function show(Request $request, Region $region)
+    public function show(Request $request, Region $region, bool $preview = false)
     {
-        abort_unless($region->is_published, 404);
+        abort_unless($preview || $region->is_published, 404);
 
-        $tipsQuery = $region->travelTips()->published()->with(['media', 'labels', 'categories']);
+        $tipsQuery = $preview
+            ? $region->travelTips()->with(['media', 'labels', 'categories'])
+            : $region->travelTips()->published()->with(['media', 'labels', 'categories']);
 
         if ($labelSlug = $request->string('label')->toString()) {
             $tipsQuery->whereHas('labels', fn ($q) => $q->where('slug', $labelSlug));
@@ -74,6 +76,6 @@ class RegionController extends Controller
             ->take(3)
             ->get();
 
-        return view('regions.show', compact('region', 'tips', 'availableLabels', 'availableCategories', 'similarRegions'));
+        return view('regions.show', compact('region', 'tips', 'availableLabels', 'availableCategories', 'similarRegions', 'preview'));
     }
 }

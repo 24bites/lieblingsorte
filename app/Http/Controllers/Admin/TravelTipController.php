@@ -87,6 +87,13 @@ class TravelTipController extends Controller
         return redirect()->route('admin.tips.index')->with('status', "Reisetipp \"{$title}\" wurde gelöscht.");
     }
 
+    public function preview(Request $request, TravelTip $tip)
+    {
+        $tip->loadMissing('region');
+
+        return app(\App\Http\Controllers\TravelTipController::class)->show($request, $tip->region, $tip->slug, preview: true);
+    }
+
     public function generateAiImage(Request $request, TravelTip $tip)
     {
         $request->validate([

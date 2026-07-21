@@ -8,16 +8,16 @@ use Illuminate\Http\Request;
 
 class TravelTipController extends Controller
 {
-    public function show(Request $request, Region $region, string $tipSlug)
+    public function show(Request $request, Region $region, string $tipSlug, bool $preview = false)
     {
-        abort_unless($region->is_published, 404);
+        abort_unless($preview || $region->is_published, 404);
 
         $tip = TravelTip::where('region_id', $region->id)
             ->where('slug', $tipSlug)
             ->with(['media', 'labels', 'categories', 'region'])
             ->firstOrFail();
 
-        abort_unless($tip->is_published, 404);
+        abort_unless($preview || $tip->is_published, 404);
 
         $favoriteIds = $request->session()->get('favorite_tip_ids', []);
 
@@ -49,6 +49,6 @@ class TravelTipController extends Controller
             ->take(6)
             ->get();
 
-        return view('tips.show', compact('tip', 'region', 'similarTips', 'otherTips', 'favoriteIds'));
+        return view('tips.show', compact('tip', 'region', 'similarTips', 'otherTips', 'favoriteIds', 'preview'));
     }
 }

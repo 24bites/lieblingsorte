@@ -37,7 +37,7 @@
                         </td>
                         <td class="px-5 py-3 text-forest-500">{{ $region->updated_at->format('d.m.Y') }}</td>
                         <td class="px-5 py-3 text-right space-x-3 whitespace-nowrap">
-                            <a href="{{ route('regions.show', $region) }}" target="_blank" class="text-forest-500 hover:text-forest-800">Ansehen</a>
+                            <a href="{{ route('admin.regions.preview', $region) }}" target="_blank" class="text-forest-500 hover:text-forest-800">{{ $region->is_published ? 'Ansehen' : 'Vorschau' }}</a>
                             <a href="{{ route('admin.regions.edit', $region) }}" class="text-forest-600 hover:text-forest-900 font-medium">Bearbeiten</a>
                             <form action="{{ route('admin.regions.destroy', $region) }}" method="POST" class="inline" onsubmit="return confirm('Region „{{ $region->name }}“ inkl. aller Reisetipps wirklich löschen?');">
                                 @csrf @method('DELETE')

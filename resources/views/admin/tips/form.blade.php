@@ -4,7 +4,12 @@
 @section('title', $isEdit ? 'Reisetipp bearbeiten' : 'Reisetipp erstellen')
 
 @section('content')
-    <h1 class="text-2xl font-semibold text-forest-900 mb-6">{{ $isEdit ? 'Reisetipp bearbeiten: '.$tip->title : 'Neuen Reisetipp erstellen' }}</h1>
+    <div class="flex items-center justify-between mb-6">
+        <h1 class="text-2xl font-semibold text-forest-900">{{ $isEdit ? 'Reisetipp bearbeiten: '.$tip->title : 'Neuen Reisetipp erstellen' }}</h1>
+        @if ($isEdit)
+            <a href="{{ route('admin.tips.preview', $tip) }}" target="_blank" class="text-sm font-semibold text-forest-600 hover:text-forest-900">Vorschau ansehen &rarr;</a>
+        @endif
+    </div>
 
     <form action="{{ $isEdit ? route('admin.tips.update', $tip) : route('admin.tips.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8 max-w-4xl">
         @csrf

@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\MediaController as AdminMediaController;
 use App\Http\Controllers\Admin\RegionController as AdminRegionController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\TravelTipController as AdminTravelTipController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FavoriteController;
@@ -55,6 +56,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('regionen/{region}', [AdminRegionController::class, 'update'])->name('regions.update');
         Route::delete('regionen/{region}', [AdminRegionController::class, 'destroy'])->name('regions.destroy');
         Route::post('regionen/{region}/ki-bild', [AdminRegionController::class, 'generateAiImage'])->name('regions.ai-image');
+        Route::get('regionen/{region}/vorschau', [AdminRegionController::class, 'preview'])->name('regions.preview');
 
         Route::get('ki-regionsgenerator', [AiRegionGeneratorController::class, 'create'])->name('ai-region-generator.create');
         Route::post('ki-regionsgenerator', [AiRegionGeneratorController::class, 'store'])->name('ai-region-generator.store');
@@ -66,6 +68,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('reisetipps/{tip}', [AdminTravelTipController::class, 'update'])->name('tips.update');
         Route::delete('reisetipps/{tip}', [AdminTravelTipController::class, 'destroy'])->name('tips.destroy');
         Route::post('reisetipps/{tip}/ki-bild', [AdminTravelTipController::class, 'generateAiImage'])->name('tips.ai-image');
+        Route::get('reisetipps/{tip}/vorschau', [AdminTravelTipController::class, 'preview'])->name('tips.preview');
 
         Route::get('kategorien', [AdminCategoryController::class, 'index'])->name('categories.index');
         Route::get('kategorien/erstellen', [AdminCategoryController::class, 'create'])->name('categories.create');
@@ -89,6 +92,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('einstellungen', [AdminSettingController::class, 'edit'])->name('settings.edit');
         Route::put('einstellungen', [AdminSettingController::class, 'update'])->name('settings.update');
+
+        Route::middleware('admin.role')->group(function () {
+            Route::get('benutzer', [AdminUserController::class, 'index'])->name('users.index');
+            Route::get('benutzer/erstellen', [AdminUserController::class, 'create'])->name('users.create');
+            Route::post('benutzer', [AdminUserController::class, 'store'])->name('users.store');
+            Route::get('benutzer/{editUser}/bearbeiten', [AdminUserController::class, 'edit'])->name('users.edit');
+            Route::put('benutzer/{editUser}', [AdminUserController::class, 'update'])->name('users.update');
+            Route::delete('benutzer/{editUser}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+        });
     });
 });
 

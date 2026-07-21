@@ -78,6 +78,11 @@ class RegionController extends Controller
         return redirect()->route('admin.regions.index')->with('status', "Region \"{$name}\" wurde gelöscht.");
     }
 
+    public function preview(Request $request, Region $region)
+    {
+        return app(\App\Http\Controllers\RegionController::class)->show($request, $region, preview: true);
+    }
+
     public function generateAiImage(Request $request, Region $region)
     {
         $request->validate([

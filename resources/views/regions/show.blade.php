@@ -25,6 +25,10 @@
 @endpush
 
 @section('content')
+    @if ($preview ?? false)
+        <x-preview-banner :is-published="$region->is_published" />
+    @endif
+
     <x-breadcrumbs :items="[
         ['label' => 'Startseite', 'url' => route('home')],
         ['label' => 'Regionen', 'url' => route('regions.index')],

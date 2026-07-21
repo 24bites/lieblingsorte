@@ -44,7 +44,7 @@
                         </td>
                         <td class="px-5 py-3 text-forest-500">{{ $tip->updated_at->format('d.m.Y') }}</td>
                         <td class="px-5 py-3 text-right space-x-3 whitespace-nowrap">
-                            <a href="{{ route('tips.show', [$tip->region, $tip]) }}" target="_blank" class="text-forest-500 hover:text-forest-800">Ansehen</a>
+                            <a href="{{ route('admin.tips.preview', $tip) }}" target="_blank" class="text-forest-500 hover:text-forest-800">{{ $tip->is_published ? 'Ansehen' : 'Vorschau' }}</a>
                             <a href="{{ route('admin.tips.edit', $tip) }}" class="text-forest-600 hover:text-forest-900 font-medium">Bearbeiten</a>
                             <form action="{{ route('admin.tips.destroy', $tip) }}" method="POST" class="inline" onsubmit="return confirm('Reisetipp „{{ $tip->title }}“ wirklich löschen?');">
                                 @csrf @method('DELETE')
