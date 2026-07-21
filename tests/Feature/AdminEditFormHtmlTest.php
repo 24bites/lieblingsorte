@@ -65,6 +65,24 @@ class AdminEditFormHtmlTest extends TestCase
         $this->assertNoNestedForms($response->getContent());
     }
 
+    public function test_region_edit_page_has_no_nested_forms_with_existing_media(): void
+    {
+        // Regression: the per-image cover/delete mini-forms in the gallery
+        // preview are themselves <form> elements — only rendered when the
+        // region already has media, which earlier tests never attached.
+        $region = Region::create([
+            'name' => 'Alpenpässe', 'type' => 'Reisegebiet', 'country' => 'Österreich',
+            'short_description' => 'Kurz', 'description' => 'Lang', 'is_published' => false,
+        ]);
+        $region->media()->create(['file_path' => 'regions/alpenpaesse/a.jpg', 'alt_text' => 'a', 'sort_order' => 0, 'is_cover' => true]);
+        $region->media()->create(['file_path' => 'regions/alpenpaesse/b.jpg', 'alt_text' => 'b', 'sort_order' => 1, 'is_cover' => false]);
+
+        $response = $this->actingAs($this->admin())->get(route('admin.regions.edit', $region));
+
+        $response->assertOk();
+        $this->assertNoNestedForms($response->getContent());
+    }
+
     public function test_saving_region_changes_persists_even_with_ai_image_form_present(): void
     {
         config(['services.openai.key' => 'test-key']);
@@ -110,5 +128,55 @@ class AdminEditFormHtmlTest extends TestCase
         $response->assertOk();
         $response->assertSee('Mit KI generieren');
         $this->assertNoNestedForms($response->getContent());
+    }
+
+    public function test_tip_edit_page_has_no_nested_forms_with_existing_media(): void
+    {
+        // Regression: the per-image cover/up/down/delete mini-forms in the
+        // gallery preview are themselves <form> elements — only rendered
+        // when the tip already has media, which earlier tests never attached.
+        // This is the exact bug reported live for a tip with 2 existing images.
+        $region = Region::create([
+            'name' => 'Alpenpässe', 'type' => 'Reisegebiet', 'country' => 'Österreich',
+            'short_description' => 'Kurz', 'description' => 'Lang', 'is_published' => false,
+        ]);
+        $tip = TravelTip::create([
+            'region_id' => $region->id, 'title' => 'Timmelsjoch',
+            'short_description' => 'Kurz', 'description' => 'Lang', 'is_published' => false,
+        ]);
+        $tip->media()->create(['file_path' => 'tips/timmelsjoch/a.jpg', 'alt_text' => 'a', 'sort_order' => 0, 'is_cover' => true]);
+        $tip->media()->create(['file_path' => 'tips/timmelsjoch/b.jpg', 'alt_text' => 'b', 'sort_order' => 1, 'is_cover' => false]);
+
+        $response = $this->actingAs($this->admin())->get(route('admin.tips.edit', $tip));
+
+        $response->assertOk();
+        $this->assertNoNestedForms($response->getContent());
+    }
+
+    public function test_saving_tip_changes_persists_with_existing_media(): void
+    {
+        $region = Region::create([
+            'name' => 'Alpenpässe', 'type' => 'Reisegebiet', 'country' => 'Österreich',
+            'short_description' => 'Kurz', 'description' => 'Lang', 'is_published' => false,
+        ]);
+        $tip = TravelTip::create([
+            'region_id' => $region->id, 'title' => 'Timmelsjoch',
+            'short_description' => 'Kurz', 'description' => 'Lang', 'is_published' => true, 'sort_order' => 0,
+        ]);
+        $tip->media()->create(['file_path' => 'tips/timmelsjoch/a.jpg', 'alt_text' => 'a', 'sort_order' => 0, 'is_cover' => true]);
+        $tip->media()->create(['file_path' => 'tips/timmelsjoch/b.jpg', 'alt_text' => 'b', 'sort_order' => 1, 'is_cover' => false]);
+
+        $response = $this->actingAs($this->admin())->put(route('admin.tips.update', $tip), [
+            'region_id' => $region->id,
+            'title' => $tip->title,
+            'slug' => $tip->slug,
+            'short_description' => $tip->short_description,
+            'description' => 'Geänderte Beschreibung',
+            'is_published' => '1',
+            'sort_order' => 0,
+        ]);
+
+        $response->assertRedirect(route('admin.tips.index'));
+        $this->assertDatabaseHas('travel_tips', ['id' => $tip->id, 'description' => 'Geänderte Beschreibung']);
     }
 }

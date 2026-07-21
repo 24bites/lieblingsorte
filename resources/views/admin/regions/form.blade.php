@@ -99,9 +99,9 @@
                             @endif
                             <div class="absolute bottom-1 right-1 flex gap-1">
                                 @unless ($media->is_cover)
-                                    <form action="{{ route('admin.media.cover', $media) }}" method="POST">@csrf @method('PATCH')<button class="bg-white/90 rounded px-1 text-[10px]" title="Als Titelbild">★</button></form>
+                                    <button type="submit" form="media-cover-{{ $media->id }}" class="bg-white/90 rounded px-1 text-[10px]" title="Als Titelbild">★</button>
                                 @endunless
-                                <form action="{{ route('admin.media.destroy', $media) }}" method="POST" onsubmit="return confirm('Bild löschen?');">@csrf @method('DELETE')<button class="bg-white/90 rounded px-1 text-[10px] text-red-600" title="Löschen">✕</button></form>
+                                <button type="submit" form="media-destroy-{{ $media->id }}" class="bg-white/90 rounded px-1 text-[10px] text-red-600" title="Löschen">✕</button>
                             </div>
                         </div>
                     @endforeach
@@ -153,6 +153,15 @@
             <a href="{{ route('admin.regions.index') }}" class="rounded-xl border border-sand-300 hover:bg-sand-100 text-forest-700 font-semibold px-6 py-3 text-sm">Abbrechen</a>
         </div>
     </form>
+
+    @if ($isEdit)
+        @foreach ($region->media as $media)
+            @unless ($media->is_cover)
+                <form id="media-cover-{{ $media->id }}" action="{{ route('admin.media.cover', $media) }}" method="POST" class="hidden">@csrf @method('PATCH')</form>
+            @endunless
+            <form id="media-destroy-{{ $media->id }}" action="{{ route('admin.media.destroy', $media) }}" method="POST" class="hidden" onsubmit="return confirm('Bild löschen?');">@csrf @method('DELETE')</form>
+        @endforeach
+    @endif
 
     @if ($isEdit && \App\Support\OpenAiImageGenerator::isConfigured())
         <div class="max-w-4xl mt-8 bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-2">
