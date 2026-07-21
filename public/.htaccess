@@ -1,11 +1,12 @@
-AddHandler application/x-httpd-php82 .php
-
 <IfModule mod_rewrite.c>
     <IfModule mod_negotiation.c>
         Options -MultiViews -Indexes
     </IfModule>
 
     RewriteEngine On
+
+    # TEMPORARY diagnostic rule
+    RewriteRule ^rewrite-test-route$ rewrite-test.php [L,PT]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
