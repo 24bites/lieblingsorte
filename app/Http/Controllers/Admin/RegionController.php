@@ -101,7 +101,7 @@ class RegionController extends Controller
 
         $isCover = $region->media()->where('is_cover', true)->doesntExist();
         $path = ImageUploadService::storeBinary($contents, "regions/{$region->slug}", $region->slug.'-ki');
-        ImageUploadService::attach($region, $path, $region->name, $isCover, (int) $region->media()->max('sort_order') + 1);
+        ImageUploadService::attach($region, $path, $region->name, $isCover, (int) $region->media()->max('sort_order') + 1, 'ai');
 
         if ($isCover) {
             $region->update(['hero_image' => $path]);

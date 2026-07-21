@@ -24,6 +24,7 @@ class MediaSeederHelper
             'alt_text' => $altText,
             'sort_order' => $sortOrder,
             'is_cover' => $isCover,
+            'source' => 'generated',
         ]);
     }
 }

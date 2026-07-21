@@ -64,13 +64,14 @@ class ImageUploadService
         imagedestroy($image);
     }
 
-    public static function attach(Model $model, string $relativePath, string $altText, bool $isCover, int $sortOrder): void
+    public static function attach(Model $model, string $relativePath, string $altText, bool $isCover, int $sortOrder, string $source = 'upload'): void
     {
         $model->media()->create([
             'file_path' => $relativePath,
             'alt_text' => $altText,
             'sort_order' => $sortOrder,
             'is_cover' => $isCover,
+            'source' => $source,
         ]);
     }
 }

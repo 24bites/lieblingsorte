@@ -112,7 +112,7 @@ class TravelTipController extends Controller
 
         $isCover = $tip->media()->where('is_cover', true)->doesntExist();
         $path = ImageUploadService::storeBinary($contents, "tips/{$tip->slug}", $tip->slug.'-ki');
-        ImageUploadService::attach($tip, $path, $tip->title, $isCover, (int) $tip->media()->max('sort_order') + 1);
+        ImageUploadService::attach($tip, $path, $tip->title, $isCover, (int) $tip->media()->max('sort_order') + 1, 'ai');
 
         return back()->with('status', 'KI-Bild wurde erstellt und hinzugefügt.');
     }

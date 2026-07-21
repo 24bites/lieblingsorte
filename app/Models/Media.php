@@ -18,6 +18,7 @@ class Media extends Model
         'caption',
         'sort_order',
         'is_cover',
+        'source',
     ];
 
     protected function casts(): array

@@ -105,6 +105,7 @@ class FetchRealPhotos extends Command
                 'alt_text' => $item['alt'],
                 'sort_order' => $stored,
                 'is_cover' => $stored === 0,
+                'source' => 'wikimedia',
             ]);
 
             if ($stored === 0 && $item['type'] === 'region') {
