@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Support\AiCronSettings;
 use App\Support\OpenAiConfig;
+use App\Support\ResendConfig;
 use App\Support\TelegramConfig;
 use Illuminate\Http\Request;
 
@@ -29,6 +30,9 @@ class SettingController extends Controller
         $telegramConfigured = TelegramConfig::isConfigured();
         $telegramChatId = TelegramConfig::chatId();
 
+        $resendKeyPreview = ResendConfig::preview();
+        $resendConfigured = $resendKeyPreview !== null;
+
         $aiCrons = [
             'images_ai_replace' => [
                 'enabled' => AiCronSettings::enabled(AiCronSettings::IMAGES_AI_REPLACE),
@@ -47,6 +51,7 @@ class SettingController extends Controller
         return view('admin.settings.edit', compact(
             'settings', 'openaiKeyConfigured', 'openaiKeyPreview', 'aiCrons',
             'telegramConfigured', 'telegramTokenPreview', 'telegramChatId',
+            'resendConfigured', 'resendKeyPreview',
         ));
     }
 
@@ -66,6 +71,8 @@ class SettingController extends Controller
             'telegram_bot_token' => ['nullable', 'string', 'max:255'],
             'telegram_chat_id' => ['nullable', 'string', 'max:255'],
             'remove_telegram' => ['nullable', 'boolean'],
+            'resend_api_key' => ['nullable', 'string', 'max:255'],
+            'remove_resend_api_key' => ['nullable', 'boolean'],
             'images_ai_replace_enabled' => ['nullable', 'boolean'],
             'images_ai_replace_interval' => ['required', 'integer', 'min:1', 'max:59'],
             'regions_auto_generate_enabled' => ['nullable', 'boolean'],
@@ -91,9 +98,16 @@ class SettingController extends Controller
             TelegramConfig::store(TelegramConfig::botToken(), trim($data['telegram_chat_id']));
         }
 
+        if ($request->boolean('remove_resend_api_key')) {
+            ResendConfig::clear();
+        } elseif (filled($data['resend_api_key'] ?? null)) {
+            ResendConfig::store(trim($data['resend_api_key']));
+        }
+
         unset(
             $data['openai_api_key'], $data['remove_openai_api_key'],
             $data['telegram_bot_token'], $data['telegram_chat_id'], $data['remove_telegram'],
+            $data['resend_api_key'], $data['remove_resend_api_key'],
             $data['images_ai_replace_enabled'], $data['images_ai_replace_interval'],
             $data['regions_auto_generate_enabled'], $data['regions_auto_generate_interval'],
             $data['regions_complete_content_enabled'], $data['regions_complete_content_interval'],

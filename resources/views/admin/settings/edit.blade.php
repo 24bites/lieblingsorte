@@ -102,6 +102,38 @@
         </div>
 
         <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-5">
+            <h2 class="font-semibold text-forest-900">Newsletter-Versand (Resend)</h2>
+            <p class="text-sm text-forest-500">
+                Wird für den Versand der Newsletter-Bestätigungsmail (Double-Opt-In) benötigt. Der Key wird aus
+                Sicherheitsgründen nie wieder im Klartext angezeigt &ndash; das Feld bleibt leer, auch wenn bereits
+                einer hinterlegt ist. Ist hier keiner gesetzt, wird ersatzweise <code>RESEND_API_KEY</code> aus der
+                <code>.env</code>-Datei verwendet.
+            </p>
+            <div>
+                <label class="block text-sm font-medium text-forest-800 mb-1">Resend API-Key</label>
+                <input type="password" name="resend_api_key" autocomplete="off" value="{{ old('resend_api_key') }}"
+                    placeholder="{{ $resendConfigured ? 'Hinterlegt ('.$resendKeyPreview.') – zum Ändern neuen Key eingeben' : 're_...' }}"
+                    class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm font-mono">
+                @error('resend_api_key')
+                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                @enderror
+                <p class="text-xs text-forest-500 mt-1">
+                    @if ($resendConfigured)
+                        Aktuell hinterlegt: <span class="font-mono">{{ $resendKeyPreview }}</span>.
+                    @else
+                        Aktuell nicht über die Einstellungen hinterlegt.
+                    @endif
+                </p>
+                @if ($resendConfigured)
+                    <label class="flex items-center gap-2 text-sm text-forest-700 mt-2">
+                        <input type="checkbox" name="remove_resend_api_key" value="1" class="rounded text-forest-600">
+                        Hinterlegten Key entfernen
+                    </label>
+                @endif
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-5">
             <h2 class="font-semibold text-forest-900">KI-Crons</h2>
             <p class="text-sm text-forest-500">
                 Steuert die automatischen Hintergrundaufgaben einzeln. Änderungen wirken beim nächsten
