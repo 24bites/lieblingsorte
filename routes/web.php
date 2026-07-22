@@ -38,7 +38,12 @@ Route::middleware('throttle:30,1')->group(function () {
     Route::get('/suche/vorschlaege', [SearchController::class, 'suggestions'])->name('search.suggestions');
 });
 
-Route::post('/newsletter', [NewsletterController::class, 'store'])->name('newsletter.store');
+Route::get('/newsletter', [NewsletterController::class, 'show'])->name('newsletter.show');
+Route::post('/newsletter', [NewsletterController::class, 'store'])->middleware('throttle:5,1')->name('newsletter.store');
+Route::get('/newsletter/danke', [NewsletterController::class, 'thanks'])->name('newsletter.thanks');
+Route::get('/newsletter/bestaetigen/{token}', [NewsletterController::class, 'confirm'])->name('newsletter.confirm');
+Route::get('/newsletter/abmelden/{token}', [NewsletterController::class, 'unsubscribeShow'])->name('newsletter.unsubscribe.show');
+Route::post('/newsletter/abmelden/{token}', [NewsletterController::class, 'unsubscribeDestroy'])->name('newsletter.unsubscribe.destroy');
 Route::get('/favoriten', [FavoriteController::class, 'index'])->name('favorites.index');
 Route::post('/favoriten/{travelTip}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');

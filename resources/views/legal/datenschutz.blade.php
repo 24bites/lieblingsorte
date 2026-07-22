@@ -100,8 +100,12 @@
         <h2 class="font-semibold text-forest-900 mt-8 mb-2">8. Newsletter</h2>
         <p>
             Wenn Sie sich für unseren Newsletter anmelden, verwenden wir Ihre E-Mail-Adresse ausschließlich zum
-            Versand der Reisetipps, denen Sie zugestimmt haben (Art. 6 Abs. 1 lit. a DSGVO). Sie können die
-            Einwilligung jederzeit durch eine Nachricht an die oben genannte Kontaktadresse widerrufen.
+            Versand der Reisetipps, denen Sie zugestimmt haben (Art. 6 Abs. 1 lit. a DSGVO). Die Anmeldung erfolgt
+            im Double-Opt-In-Verfahren: Sie erhalten nach der Anmeldung eine Bestätigungs-E-Mail und werden erst
+            nach Klick auf den darin enthaltenen Link in den Verteiler aufgenommen. Zum Nachweis Ihrer Einwilligung
+            speichern wir zusätzlich den Anmeldezeitpunkt und Ihre IP-Adresse. Sie können die Einwilligung jederzeit
+            über den Abmeldelink am Ende jeder Newsletter-E-Mail oder durch eine Nachricht an die oben genannte
+            Kontaktadresse widerrufen.
         </p>
     </div>
 @endsection

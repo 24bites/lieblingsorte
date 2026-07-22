@@ -14,14 +14,17 @@ class NewsletterSubscribeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email', 'max:255', 'unique:newsletter_subscribers,email'],
+            'email' => ['required', 'email', 'max:255'],
+            'consent' => ['required', 'accepted'],
+            'homepage' => ['nullable', 'string'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'email.unique' => 'Diese E-Mail-Adresse ist bereits für den Newsletter angemeldet.',
+            'consent.required' => 'Bitte bestätige die Werbeerlaubnis, um dich anzumelden.',
+            'consent.accepted' => 'Bitte bestätige die Werbeerlaubnis, um dich anzumelden.',
         ];
     }
 }
