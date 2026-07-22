@@ -82,6 +82,44 @@ class PinterestFeedTest extends TestCase
         $this->assertStringNotContainsString('<enclosure', $xml);
     }
 
+    public function test_feed_never_uses_a_wikimedia_photo_as_the_cover_image(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('regions/toskana/wiki.jpg', 'fake-bytes');
+        $region = $this->region();
+        $region->media()->create([
+            'file_path' => 'regions/toskana/wiki.jpg', 'alt_text' => 'Toskana',
+            'sort_order' => 0, 'is_cover' => true, 'source' => 'wikimedia',
+        ]);
+
+        $xml = $this->get(route('pinterest-feed'))->getContent();
+
+        $this->assertStringNotContainsString('<enclosure', $xml);
+        $this->assertStringNotContainsString('wiki.jpg', $xml);
+    }
+
+    public function test_feed_falls_back_to_a_non_wikimedia_image_when_the_cover_is_wikimedia(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('regions/toskana/wiki.jpg', 'fake-bytes');
+        Storage::disk('public')->put('regions/toskana/ai.jpg', 'fake-bytes');
+        $region = $this->region();
+        $region->media()->create([
+            'file_path' => 'regions/toskana/wiki.jpg', 'alt_text' => 'Toskana',
+            'sort_order' => 0, 'is_cover' => true, 'source' => 'wikimedia',
+        ]);
+        $region->media()->create([
+            'file_path' => 'regions/toskana/ai.jpg', 'alt_text' => 'Toskana',
+            'sort_order' => 1, 'is_cover' => false, 'source' => 'ai',
+        ]);
+
+        $xml = $this->get(route('pinterest-feed'))->getContent();
+
+        $this->assertStringContainsString('<enclosure', $xml);
+        $this->assertStringContainsString('ai.jpg', $xml);
+        $this->assertStringNotContainsString('wiki.jpg', $xml);
+    }
+
     public function test_feed_excludes_unpublished_regions(): void
     {
         $this->region(['name' => 'Entwurf', 'is_published' => false]);

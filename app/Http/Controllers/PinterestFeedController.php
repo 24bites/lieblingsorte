@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Media;
 use App\Models\Region;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
@@ -37,7 +38,7 @@ class PinterestFeedController extends Controller
 
     private function coverImageData(Region $region): ?array
     {
-        $cover = $region->coverImage();
+        $cover = $this->feedImage($region);
 
         if (! $cover) {
             return null;
@@ -57,5 +58,18 @@ class PinterestFeedController extends Controller
                 ? Storage::disk('public')->size($cover->file_path)
                 : 0,
         ];
+    }
+
+    /**
+     * Wikimedia photos carry attribution requirements that a bare Pinterest
+     * auto-pin can't preserve, so they must never be used as the feed image -
+     * prefer the region's cover image if it isn't Wikimedia-sourced, otherwise
+     * fall back to another non-Wikimedia image on the region, if any exists.
+     */
+    private function feedImage(Region $region): ?Media
+    {
+        $eligible = $region->media->where('source', '!=', 'wikimedia');
+
+        return $eligible->firstWhere('is_cover', true) ?? $eligible->first();
     }
 }
