@@ -28,12 +28,14 @@ class GenerateRegionsWithAi extends Command
     {
         if (! AiCronSettings::enabled()) {
             $this->info('KI-Crons sind in den Einstellungen deaktiviert - überspringe.');
+            Log::info('regions:auto-generate: übersprungen (in Einstellungen deaktiviert).');
 
             return self::SUCCESS;
         }
 
         if (! OpenAiRegionDrafter::isConfigured()) {
             $this->warn('OPENAI_API_KEY ist nicht konfiguriert - überspringe.');
+            Log::info('regions:auto-generate: übersprungen (kein OPENAI_API_KEY konfiguriert).');
 
             return self::SUCCESS;
         }
@@ -47,15 +49,21 @@ class GenerateRegionsWithAi extends Command
 
         if ($remaining <= 0) {
             $this->info("Tageslimit von {$dailyCap} KI-Regionen bereits erreicht ({$createdToday}).");
+            Log::info("regions:auto-generate: Tageslimit erreicht ({$createdToday}/{$dailyCap}).");
 
             return self::SUCCESS;
         }
+
+        $countBefore = Region::where('ai_generated', true)->count();
 
         for ($i = 0; $i < $remaining; $i++) {
             if (! $this->generateOne()) {
                 break;
             }
         }
+
+        $created = Region::where('ai_generated', true)->count() - $countBefore;
+        Log::info("regions:auto-generate: Lauf abgeschlossen. {$created} Region(en) erstellt.");
 
         return self::SUCCESS;
     }

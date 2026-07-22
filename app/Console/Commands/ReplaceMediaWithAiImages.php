@@ -30,12 +30,14 @@ class ReplaceMediaWithAiImages extends Command
     {
         if (! AiCronSettings::enabled()) {
             $this->info('KI-Crons sind in den Einstellungen deaktiviert - überspringe.');
+            Log::info('images:ai-replace: übersprungen (in Einstellungen deaktiviert).');
 
             return self::SUCCESS;
         }
 
         if (! OpenAiImageGenerator::isConfigured()) {
             $this->warn('OPENAI_API_KEY ist nicht konfiguriert - überspringe.');
+            Log::info('images:ai-replace: übersprungen (kein OPENAI_API_KEY konfiguriert).');
 
             return self::SUCCESS;
         }
@@ -51,27 +53,34 @@ class ReplaceMediaWithAiImages extends Command
 
         if ($candidates->isEmpty()) {
             $this->info('Keine Bilder zum Ersetzen gefunden.');
+            Log::info('images:ai-replace: keine Kandidaten gefunden.');
 
             return self::SUCCESS;
         }
 
         set_time_limit(60 * $candidates->count() + 60);
 
+        $replaced = 0;
+
         foreach ($candidates as $media) {
-            $this->replace($media);
+            if ($this->replace($media)) {
+                $replaced++;
+            }
         }
+
+        Log::info("images:ai-replace: Lauf abgeschlossen. {$replaced}/{$candidates->count()} Bilder ersetzt.");
 
         return self::SUCCESS;
     }
 
-    private function replace(Media $media): void
+    private function replace(Media $media): bool
     {
         $model = $media->mediable;
 
         if ($model === null) {
             $this->line("  #{$media->id}: verwaistes Medienobjekt, überspringe.");
 
-            return;
+            return false;
         }
 
         $prompt = AiImagePromptBuilder::forModel($model);
@@ -89,7 +98,7 @@ class ReplaceMediaWithAiImages extends Command
             ]);
             $this->line("  #{$media->id} ({$oldPath}): fehlgeschlagen - {$e->getMessage()}");
 
-            return;
+            return false;
         }
 
         $media->update(['file_path' => $newPath, 'source' => 'ai']);
@@ -102,5 +111,7 @@ class ReplaceMediaWithAiImages extends Command
         Storage::disk('public')->delete(preg_replace('/\.[^.]+$/', '.webp', $oldPath));
 
         $this->line("  #{$media->id}: {$oldPath} -> {$newPath}");
+
+        return true;
     }
 }
