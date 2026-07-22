@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Support\AiCronSettings;
 use App\Support\OpenAiConfig;
+use App\Support\TelegramConfig;
 use Illuminate\Http\Request;
 
 class SettingController extends Controller
@@ -24,6 +25,10 @@ class SettingController extends Controller
         $openaiKeyPreview = OpenAiConfig::preview();
         $openaiKeyConfigured = $openaiKeyPreview !== null;
 
+        $telegramTokenPreview = TelegramConfig::preview();
+        $telegramConfigured = TelegramConfig::isConfigured();
+        $telegramChatId = TelegramConfig::chatId();
+
         $aiCrons = [
             'images_ai_replace' => [
                 'enabled' => AiCronSettings::enabled(AiCronSettings::IMAGES_AI_REPLACE),
@@ -39,7 +44,10 @@ class SettingController extends Controller
             ],
         ];
 
-        return view('admin.settings.edit', compact('settings', 'openaiKeyConfigured', 'openaiKeyPreview', 'aiCrons'));
+        return view('admin.settings.edit', compact(
+            'settings', 'openaiKeyConfigured', 'openaiKeyPreview', 'aiCrons',
+            'telegramConfigured', 'telegramTokenPreview', 'telegramChatId',
+        ));
     }
 
     public function update(Request $request)
@@ -55,6 +63,9 @@ class SettingController extends Controller
             'ad_slot_in_content' => ['nullable', 'string', 'max:5000'],
             'openai_api_key' => ['nullable', 'string', 'max:255'],
             'remove_openai_api_key' => ['nullable', 'boolean'],
+            'telegram_bot_token' => ['nullable', 'string', 'max:255'],
+            'telegram_chat_id' => ['nullable', 'string', 'max:255'],
+            'remove_telegram' => ['nullable', 'boolean'],
             'images_ai_replace_enabled' => ['nullable', 'boolean'],
             'images_ai_replace_interval' => ['required', 'integer', 'min:1', 'max:59'],
             'regions_auto_generate_enabled' => ['nullable', 'boolean'],
@@ -70,8 +81,19 @@ class SettingController extends Controller
         } elseif (filled($data['openai_api_key'] ?? null)) {
             OpenAiConfig::store(trim($data['openai_api_key']));
         }
+
+        if ($request->boolean('remove_telegram')) {
+            TelegramConfig::clear();
+        } elseif (filled($data['telegram_bot_token'] ?? null)) {
+            TelegramConfig::store(trim($data['telegram_bot_token']), trim($data['telegram_chat_id'] ?? ''));
+        } elseif (filled($data['telegram_chat_id'] ?? null) && TelegramConfig::botToken() !== null) {
+            // Chat id changed without re-entering the token.
+            TelegramConfig::store(TelegramConfig::botToken(), trim($data['telegram_chat_id']));
+        }
+
         unset(
             $data['openai_api_key'], $data['remove_openai_api_key'],
+            $data['telegram_bot_token'], $data['telegram_chat_id'], $data['remove_telegram'],
             $data['images_ai_replace_enabled'], $data['images_ai_replace_interval'],
             $data['regions_auto_generate_enabled'], $data['regions_auto_generate_interval'],
             $data['regions_complete_content_enabled'], $data['regions_complete_content_interval'],

@@ -63,6 +63,7 @@
                         ['route' => 'admin.categories.index', 'label' => 'Kategorien', 'active' => 'admin.categories.*'],
                         ['route' => 'admin.labels.index', 'label' => 'Labels', 'active' => 'admin.labels.*'],
                         ['route' => 'admin.media.index', 'label' => 'Medien', 'active' => 'admin.media.*'],
+                        ['route' => 'admin.social-hub.index', 'label' => 'Social Hub', 'active' => 'admin.social-hub.*'],
                         ['route' => 'admin.settings.edit', 'label' => 'Einstellungen', 'active' => 'admin.settings.*'],
                     ];
                     if (auth()->user()?->isAdmin()) {

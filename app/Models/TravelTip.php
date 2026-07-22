@@ -88,6 +88,21 @@ class TravelTip extends Model
         return $this->morphMany(Media::class, 'mediable')->orderBy('sort_order');
     }
 
+    public function socialPosts(): MorphMany
+    {
+        return $this->morphMany(SocialPost::class, 'postable');
+    }
+
+    public function socialShareData(): array
+    {
+        return [
+            'title' => $this->title,
+            'description' => $this->short_description,
+            'url' => route('tips.show', [$this->region, $this]),
+            'image' => $this->coverImage()?->url,
+        ];
+    }
+
     public function favorites()
     {
         return $this->hasMany(Favorite::class);

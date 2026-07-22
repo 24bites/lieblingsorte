@@ -76,6 +76,25 @@ class Region extends Model
         return $this->morphMany(Media::class, 'mediable')->orderBy('sort_order');
     }
 
+    public function socialPosts(): MorphMany
+    {
+        return $this->morphMany(SocialPost::class, 'postable');
+    }
+
+    /**
+     * Common facts the Social Hub needs to build a post, regardless of
+     * which content type (Region/TravelTip/TravelReport) is being shared.
+     */
+    public function socialShareData(): array
+    {
+        return [
+            'title' => $this->name,
+            'description' => $this->short_description,
+            'url' => route('regions.show', $this),
+            'image' => $this->coverImage()?->url,
+        ];
+    }
+
     public function coverImage(): ?Media
     {
         return $this->media->firstWhere('is_cover', true) ?? $this->media->first();

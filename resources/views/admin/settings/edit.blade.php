@@ -62,6 +62,46 @@
         </div>
 
         <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-5">
+            <h2 class="font-semibold text-forest-900">Telegram (für Social Hub)</h2>
+            <p class="text-sm text-forest-500">
+                Damit der Social Hub Beiträge direkt an einen Telegram-Kanal/Chat senden kann (statt nur einen
+                Share-Link zu öffnen). Bot-Token über <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer" class="underline">@BotFather</a>
+                anlegen und den Bot als Admin zum Zielkanal hinzufügen.
+            </p>
+            <div class="grid sm:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-sm font-medium text-forest-800 mb-1">Bot-Token</label>
+                    <input type="password" name="telegram_bot_token" autocomplete="off" value="{{ old('telegram_bot_token') }}"
+                        placeholder="{{ $telegramConfigured ? 'Hinterlegt ('.$telegramTokenPreview.') – zum Ändern neuen Token eingeben' : '123456:ABC-...' }}"
+                        class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm font-mono">
+                    @error('telegram_bot_token')
+                        <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-forest-800 mb-1">Chat-/Kanal-ID</label>
+                    <input type="text" name="telegram_chat_id" value="{{ old('telegram_chat_id', $telegramChatId) }}" placeholder="@meinkanal oder -1001234567890" class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm font-mono">
+                    @error('telegram_chat_id')
+                        <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+            <p class="text-xs text-forest-500">
+                @if ($telegramConfigured)
+                    Aktuell hinterlegt: <span class="font-mono">{{ $telegramTokenPreview }}</span>.
+                @else
+                    Aktuell nicht hinterlegt &ndash; im Social Hub steht für Telegram dann nur der Share-Link zur Verfügung.
+                @endif
+            </p>
+            @if ($telegramConfigured)
+                <label class="flex items-center gap-2 text-sm text-forest-700">
+                    <input type="checkbox" name="remove_telegram" value="1" class="rounded text-forest-600">
+                    Hinterlegte Telegram-Zugangsdaten entfernen
+                </label>
+            @endif
+        </div>
+
+        <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-5">
             <h2 class="font-semibold text-forest-900">KI-Crons</h2>
             <p class="text-sm text-forest-500">
                 Steuert die automatischen Hintergrundaufgaben einzeln. Änderungen wirken beim nächsten

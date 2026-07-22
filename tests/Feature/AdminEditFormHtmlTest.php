@@ -237,4 +237,33 @@ class AdminEditFormHtmlTest extends TestCase
         $response->assertRedirect(route('admin.reports.edit', $report));
         $this->assertDatabaseHas('travel_reports', ['id' => $report->id, 'content' => 'Geänderter Inhalt', 'is_published' => true]);
     }
+
+    public function test_social_hub_index_has_no_nested_forms(): void
+    {
+        Region::create([
+            'name' => 'Toskana', 'type' => 'Region', 'country' => 'Italien',
+            'short_description' => 'Kurz', 'description' => 'Lang', 'is_published' => true,
+        ]);
+
+        $response = $this->actingAs($this->admin())->get(route('admin.social-hub.index'));
+
+        $response->assertOk();
+        $this->assertNoNestedForms($response->getContent());
+    }
+
+    public function test_social_hub_show_has_no_nested_forms(): void
+    {
+        $region = Region::create([
+            'name' => 'Toskana', 'type' => 'Region', 'country' => 'Italien',
+            'short_description' => 'Kurz', 'description' => 'Lang', 'is_published' => true,
+        ]);
+        $socialPost = $region->socialPosts()->create([
+            'platform' => 'facebook', 'caption' => 'Text', 'link_url' => 'https://example.test', 'status' => 'draft',
+        ]);
+
+        $response = $this->actingAs($this->admin())->get(route('admin.social-hub.show', $socialPost));
+
+        $response->assertOk();
+        $this->assertNoNestedForms($response->getContent());
+    }
 }

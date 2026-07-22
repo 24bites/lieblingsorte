@@ -48,6 +48,21 @@ class TravelReport extends Model
         return $this->morphMany(Media::class, 'mediable')->orderBy('sort_order');
     }
 
+    public function socialPosts(): MorphMany
+    {
+        return $this->morphMany(SocialPost::class, 'postable');
+    }
+
+    public function socialShareData(): array
+    {
+        return [
+            'title' => $this->title,
+            'description' => $this->excerpt,
+            'url' => route('reports.show', $this),
+            'image' => $this->coverImage()?->url,
+        ];
+    }
+
     public function coverImage(): ?Media
     {
         return $this->media->firstWhere('is_cover', true) ?? $this->media->first();

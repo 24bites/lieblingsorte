@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\LabelController as AdminLabelController;
 use App\Http\Controllers\Admin\MediaController as AdminMediaController;
 use App\Http\Controllers\Admin\RegionController as AdminRegionController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
+use App\Http\Controllers\Admin\SocialHubController;
 use App\Http\Controllers\Admin\TravelReportController as AdminTravelReportController;
 use App\Http\Controllers\Admin\TravelTipController as AdminTravelTipController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
@@ -88,6 +89,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('reiseberichte/{report}/ki-text', [AdminTravelReportController::class, 'generateAiText'])->name('reports.ai-text');
         Route::post('reiseberichte/{report}/ki-bild', [AdminTravelReportController::class, 'generateAiImage'])->name('reports.ai-image');
         Route::get('reiseberichte/{report}/vorschau', [AdminTravelReportController::class, 'preview'])->name('reports.preview');
+
+        Route::get('social-hub', [SocialHubController::class, 'index'])->name('social-hub.index');
+        Route::post('social-hub/generieren', [SocialHubController::class, 'generate'])->name('social-hub.generate');
+        Route::get('social-hub/{socialPost}', [SocialHubController::class, 'show'])->name('social-hub.show');
+        Route::put('social-hub/{socialPost}', [SocialHubController::class, 'update'])->name('social-hub.update');
+        Route::post('social-hub/{socialPost}/senden', [SocialHubController::class, 'send'])->name('social-hub.send');
+        Route::post('social-hub/{socialPost}/als-gesendet-markieren', [SocialHubController::class, 'markSent'])->name('social-hub.mark-sent');
+        Route::delete('social-hub/{socialPost}', [SocialHubController::class, 'destroy'])->name('social-hub.destroy');
 
         Route::get('kategorien', [AdminCategoryController::class, 'index'])->name('categories.index');
         Route::get('kategorien/erstellen', [AdminCategoryController::class, 'create'])->name('categories.create');
