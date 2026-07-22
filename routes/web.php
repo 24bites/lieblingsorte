@@ -18,6 +18,7 @@ use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ImageCreditsController;
 use App\Http\Controllers\NewsletterController;
+use App\Http\Controllers\PinterestFeedController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SitemapController;
@@ -41,6 +42,7 @@ Route::post('/newsletter', [NewsletterController::class, 'store'])->name('newsle
 Route::get('/favoriten', [FavoriteController::class, 'index'])->name('favorites.index');
 Route::post('/favoriten/{travelTip}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('/pinterest-feed.xml', [PinterestFeedController::class, 'index'])->name('pinterest-feed');
 Route::view('/impressum', 'legal.impressum')->name('legal.impressum');
 Route::view('/datenschutz', 'legal.datenschutz')->name('legal.datenschutz');
 Route::get('/bildquellen', [ImageCreditsController::class, 'index'])->name('legal.bildquellen');

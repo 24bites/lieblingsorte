@@ -30,6 +30,25 @@
         </div>
     @endif
 
+    <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-3 mb-6" x-data="{ copied: false }">
+        <h2 class="font-semibold text-forest-900">Pinterest-Feed (automatische Pins)</h2>
+        <p class="text-sm text-forest-500">
+            RSS-Feed mit den 25 zuletzt aktualisierten veröffentlichten Regionen (Titel, Teaser und Titelbild).
+            In Pinterest unter <span class="font-medium">Unternehmenskonto &rarr; Einstellungen &rarr; Content &rarr; RSS-Feeds</span>
+            einmalig als Quelle hinterlegen &ndash; Pinterest holt neue Einträge dann automatisch ab und erstellt daraus Pins.
+        </p>
+        <div class="flex gap-2">
+            <input id="pinterest-feed-url" type="text" readonly value="{{ route('pinterest-feed') }}" class="flex-1 rounded-xl border border-sand-300 px-4 py-2.5 text-sm font-mono bg-sand-50" onclick="this.select()">
+            <button type="button"
+                @click="navigator.clipboard.writeText(document.getElementById('pinterest-feed-url').value); copied = true; setTimeout(() => copied = false, 2000)"
+                class="rounded-xl bg-forest-700 hover:bg-forest-800 text-white text-sm font-semibold px-4 py-2 whitespace-nowrap">
+                <span x-show="!copied">Kopieren</span>
+                <span x-show="copied" x-cloak>Kopiert ✓</span>
+            </button>
+            <a href="{{ route('pinterest-feed') }}" target="_blank" class="rounded-xl border border-sand-300 hover:bg-sand-100 text-forest-700 text-sm font-semibold px-4 py-2 whitespace-nowrap">Ansehen</a>
+        </div>
+    </div>
+
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div class="flex gap-2">
             @foreach ($typeLabels as $key => $label)
