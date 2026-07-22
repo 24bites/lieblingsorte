@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Media;
 use App\Models\Region;
 use App\Models\TravelTip;
 use Illuminate\Console\Command;
@@ -106,6 +107,10 @@ class FetchRealPhotos extends Command
                 'sort_order' => $stored,
                 'is_cover' => $stored === 0,
                 'source' => 'wikimedia',
+                'credit_author' => Media::truncateCreditText(trim(strip_tags($candidate['author'] ?: 'unbekannt'))),
+                'credit_license' => $candidate['license'],
+                'credit_source_title' => $candidate['title'],
+                'credit_source_url' => $candidate['descriptionurl'],
             ]);
 
             if ($stored === 0 && $item['type'] === 'region') {

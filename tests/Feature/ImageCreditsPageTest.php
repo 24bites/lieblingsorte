@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Region;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class ImageCreditsPageTest extends TestCase
@@ -26,23 +28,60 @@ class ImageCreditsPageTest extends TestCase
         $response->assertDontSee('CREDITS.md');
     }
 
-    public function test_bildquellen_page_handles_missing_credits_file_gracefully(): void
+    public function test_bildquellen_page_shows_empty_state_without_any_credited_media(): void
     {
-        $path = storage_path('app/credits.json');
-        $backup = file_exists($path) ? file_get_contents($path) : null;
+        $response = $this->get('/bildquellen');
 
-        if (file_exists($path)) {
-            unlink($path);
-        }
+        $response->assertOk();
+        $response->assertSee('Aktuell sind keine Bildquellen hinterlegt');
+    }
 
-        try {
-            $response = $this->get('/bildquellen');
-            $response->assertOk();
-            $response->assertSee('Aktuell sind keine Bildquellen hinterlegt');
-        } finally {
-            if ($backup !== null) {
-                file_put_contents($path, $backup);
-            }
-        }
+    public function test_bildquellen_page_lists_media_with_credit_fields(): void
+    {
+        Storage::fake('public');
+        $region = Region::create([
+            'name' => 'Toskana', 'type' => 'Region', 'country' => 'Italien',
+            'short_description' => 'Kurz', 'description' => 'Lang', 'is_published' => true,
+        ]);
+        Storage::disk('public')->put('regions/toskana/toskana-1.jpg', 'fake-bytes');
+        $region->media()->create([
+            'file_path' => 'regions/toskana/toskana-1.jpg',
+            'alt_text' => 'Toskana',
+            'sort_order' => 0,
+            'is_cover' => true,
+            'source' => 'wikimedia',
+            'credit_author' => 'Max Mustermann',
+            'credit_license' => 'CC BY-SA 4.0',
+            'credit_source_title' => 'File:Toskana.jpg',
+            'credit_source_url' => 'https://commons.wikimedia.org/wiki/File:Toskana.jpg',
+        ]);
+
+        $response = $this->get('/bildquellen');
+
+        $response->assertOk();
+        $response->assertSee('Toskana');
+        $response->assertSee('Max Mustermann');
+        $response->assertSee('CC BY-SA 4.0');
+        $response->assertSee('https://commons.wikimedia.org/wiki/File:Toskana.jpg', false);
+    }
+
+    public function test_bildquellen_page_excludes_media_without_any_credit_fields(): void
+    {
+        $region = Region::create([
+            'name' => 'Toskana', 'type' => 'Region', 'country' => 'Italien',
+            'short_description' => 'Kurz', 'description' => 'Lang', 'is_published' => true,
+        ]);
+        $region->media()->create([
+            'file_path' => 'regions/toskana/toskana-1.jpg',
+            'alt_text' => 'Toskana',
+            'sort_order' => 0,
+            'is_cover' => true,
+            'source' => 'generated',
+        ]);
+
+        $response = $this->get('/bildquellen');
+
+        $response->assertOk();
+        $response->assertSee('Aktuell sind keine Bildquellen hinterlegt');
     }
 }

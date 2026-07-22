@@ -2,21 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Media;
+
 class ImageCreditsController extends Controller
 {
     public function index()
     {
-        $path = storage_path('app/credits.json');
-        $credits = file_exists($path) ? json_decode(file_get_contents($path), true) : [];
-        $credits = is_array($credits) ? $credits : [];
+        $credited = Media::with('mediable')
+            ->where(function ($query) {
+                $query->whereNotNull('credit_author')
+                    ->orWhereNotNull('credit_license')
+                    ->orWhereNotNull('credit_source_url');
+            })
+            ->orderBy('file_path')
+            ->get()
+            ->filter(fn (Media $media) => $media->mediable !== null);
 
-        $grouped = collect($credits)
-            ->sortBy('file')
-            ->groupBy('used_for');
+        $grouped = $credited->groupBy(fn (Media $media) => $media->mediable->title ?? $media->mediable->name ?? '—');
 
         return view('legal.bildquellen', [
             'grouped' => $grouped,
-            'total' => count($credits),
+            'total' => $credited->count(),
         ]);
     }
 }

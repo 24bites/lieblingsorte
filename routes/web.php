@@ -94,6 +94,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::patch('medien/{media}/titelbild', [AdminMediaController::class, 'makeCover'])->name('media.cover');
         Route::patch('medien/{media}/hoch', [AdminMediaController::class, 'moveUp'])->name('media.up');
         Route::patch('medien/{media}/runter', [AdminMediaController::class, 'moveDown'])->name('media.down');
+        Route::patch('medien/{media}/quelle', [AdminMediaController::class, 'updateCredit'])->name('media.credit');
 
         Route::get('einstellungen', [AdminSettingController::class, 'edit'])->name('settings.edit');
         Route::put('einstellungen', [AdminSettingController::class, 'update'])->name('settings.update');

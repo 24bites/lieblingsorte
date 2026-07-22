@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Media;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class MediaController extends Controller
@@ -13,6 +14,20 @@ class MediaController extends Controller
         $media = Media::with('mediable')->orderByDesc('created_at')->paginate(30);
 
         return view('admin.media.index', compact('media'));
+    }
+
+    public function updateCredit(Request $request, Media $media)
+    {
+        $data = $request->validate([
+            'credit_author' => ['nullable', 'string', 'max:1000'],
+            'credit_license' => ['nullable', 'string', 'max:255'],
+            'credit_source_title' => ['nullable', 'string', 'max:255'],
+            'credit_source_url' => ['nullable', 'url', 'max:255'],
+        ]);
+
+        $media->update($data);
+
+        return back()->with('status', 'Bildquelle wurde aktualisiert.');
     }
 
     public function destroy(Media $media)

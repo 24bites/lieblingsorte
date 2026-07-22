@@ -33,18 +33,26 @@
                         <div class="space-y-3">
                             @foreach ($items as $credit)
                                 <div class="flex gap-4 bg-white ring-1 ring-sand-200 rounded-xl p-4">
-                                    @if (\Illuminate\Support\Facades\Storage::disk('public')->exists($credit['file']))
-                                        <img src="{{ asset('storage/'.$credit['file']) }}" alt="" class="w-24 h-24 object-cover rounded-lg flex-shrink-0">
+                                    @if (\Illuminate\Support\Facades\Storage::disk('public')->exists($credit->file_path))
+                                        <img src="{{ $credit->url }}" alt="" class="w-24 h-24 object-cover rounded-lg flex-shrink-0">
                                     @endif
                                     <div class="text-sm text-forest-700 space-y-1">
-                                        <p><span class="text-forest-500">Wikimedia-Commons-Titel:</span> {{ $credit['source_title'] }}</p>
-                                        <p><span class="text-forest-500">Autor/in:</span> {{ $credit['author'] }}</p>
-                                        <p><span class="text-forest-500">Lizenz:</span> {{ $credit['license'] }}</p>
-                                        <p>
-                                            <a href="{{ $credit['source_url'] }}" target="_blank" rel="noopener noreferrer nofollow" class="text-forest-700 underline">
-                                                Zur Originalquelle
-                                            </a>
-                                        </p>
+                                        @if ($credit->credit_source_title)
+                                            <p><span class="text-forest-500">Wikimedia-Commons-Titel:</span> {{ $credit->credit_source_title }}</p>
+                                        @endif
+                                        @if ($credit->credit_author)
+                                            <p><span class="text-forest-500">Autor/in:</span> {{ $credit->credit_author }}</p>
+                                        @endif
+                                        @if ($credit->credit_license)
+                                            <p><span class="text-forest-500">Lizenz:</span> {{ $credit->credit_license }}</p>
+                                        @endif
+                                        @if ($credit->credit_source_url)
+                                            <p>
+                                                <a href="{{ $credit->credit_source_url }}" target="_blank" rel="noopener noreferrer nofollow" class="text-forest-700 underline">
+                                                    Zur Originalquelle
+                                                </a>
+                                            </p>
+                                        @endif
                                     </div>
                                 </div>
                             @endforeach
