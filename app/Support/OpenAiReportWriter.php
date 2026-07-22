@@ -84,4 +84,89 @@ class OpenAiReportWriter
 
         return $content;
     }
+
+    /**
+     * Drafts a full report - title, teaser, body, and SEO fields - from just
+     * a topic, for the "Neuer Reisebericht erstellen" page. Author identity
+     * is deliberately left out of the draft (see TravelReportController):
+     * that stays a human choice, not something to fabricate.
+     */
+    public static function draft(string $topic, ?string $context = null): array
+    {
+        $apiKey = OpenAiConfig::apiKey();
+
+        if (blank($apiKey)) {
+            throw new RuntimeException('OPENAI_API_KEY ist nicht konfiguriert.');
+        }
+
+        $contextLine = filled($context) ? "Zusätzlicher Kontext: {$context}\n" : '';
+
+        $schema = <<<'JSON'
+        {
+          "title": "string, prägnanter Titel des Reiseberichts",
+          "excerpt": "Teaser/Kurzbeschreibung, max. 200 Zeichen",
+          "content": "der vollständige Reisebericht-Fließtext, siehe Stil- und Strukturvorgaben oben",
+          "seo_title": "string oder null",
+          "seo_description": "max. 160 Zeichen oder null"
+        }
+        JSON;
+
+        $response = Http::withToken($apiKey)
+            ->timeout(120)
+            ->retry(2, 1000)
+            ->post('https://api.openai.com/v1/chat/completions', [
+                'model' => config('services.openai.text_model', 'gpt-4o-mini'),
+                'response_format' => ['type' => 'json_object'],
+                'temperature' => 1.0,
+                'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' => <<<'PROMPT'
+                        Du schreibst persönliche, sehr menschlich klingende Reiseberichte auf Deutsch für ein
+                        Reiseportal. Du erzählst aus der Ich-Perspektive, mit konkreten, sinnlichen Details
+                        (Geräusche, Gerüche, Wetter, kleine Beobachtungen, ein Gespräch, ein Missgeschick),
+                        unterschiedlich langen Sätzen und einem natürlichen, leicht unperfekten Rhythmus - wie ein
+                        guter persönlicher Reiseblog, nicht wie ein Prospekt oder eine Pressemitteilung.
+
+                        Vermeide unbedingt typische Merkmale von KI-generiertem Text:
+                        - keine Einleitungsfloskeln wie "Tauchen wir ein", "Begleite mich" oder "Stell dir vor"
+                        - kein "Fazit:" oder abschließenden Absatz mit Ratschlägen/Zusammenfassung an die Leserschaft
+                        - keine Aufzählungen mit Bulletpoints oder nummerierten Listen
+                        - keine sich wiederholenden Satzanfänge (nicht durchgehend "Zunächst... Danach... Schließlich...")
+                        - keine Häufung von Superlativen wie "atemberaubend", "unvergesslich", "einzigartig", "magisch"
+                        - keine Gedankenstrich-Aufzählungen oder abgehackte Schlagwort-Sätze im Werbe-Stil
+                        - keine Meta-Kommentare über das Schreiben selbst oder direkte Anrede der Leserschaft am Ende
+                        - keine erfundenen exakten Preise, Öffnungszeiten oder Namen von Personen/Betrieben
+
+                        Struktur des "content"-Feldes: Gliedere den Text in 2 bis 4 Abschnitte. Jeder Abschnitt
+                        beginnt mit einer kurzen, konkreten Zwischenüberschrift auf einer eigenen Zeile im Format
+                        "## Überschrift" (ohne Anführungszeichen). Trenne alle Absätze durch eine Leerzeile. Länge
+                        ca. 500-800 Wörter.
+
+                        Antworte ausschließlich mit einem JSON-Objekt exakt nach dem vorgegebenen Schema.
+                        PROMPT,
+                    ],
+                    [
+                        'role' => 'user',
+                        'content' => "Entwirf einen Reisebericht zum Thema \"{$topic}\".\n{$contextLine}"
+                            ."Antworte ausschließlich mit einem JSON-Objekt exakt nach folgendem Schema "
+                            ."(Werte sind Beispiele für den Typ, keine Vorgabe für den Inhalt):\n{$schema}",
+                    ],
+                ],
+            ]);
+
+        if ($response->failed()) {
+            throw new RuntimeException(
+                'OpenAI-Anfrage fehlgeschlagen: '.$response->json('error.message', (string) $response->status())
+            );
+        }
+
+        $data = json_decode((string) $response->json('choices.0.message.content'), true);
+
+        if (! is_array($data) || empty($data['title']) || empty($data['content'])) {
+            throw new RuntimeException('OpenAI-Antwort konnte nicht als gültiger Berichts-Entwurf gelesen werden.');
+        }
+
+        return $data;
+    }
 }

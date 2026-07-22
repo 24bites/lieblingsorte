@@ -82,6 +82,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('reiseberichte', [AdminTravelReportController::class, 'index'])->name('reports.index');
         Route::get('reiseberichte/erstellen', [AdminTravelReportController::class, 'create'])->name('reports.create');
+        Route::post('reiseberichte/ki-entwurf', [AdminTravelReportController::class, 'generateAiDraft'])->name('reports.ai-draft');
         Route::post('reiseberichte', [AdminTravelReportController::class, 'store'])->name('reports.store');
         Route::get('reiseberichte/{report}/bearbeiten', [AdminTravelReportController::class, 'edit'])->name('reports.edit');
         Route::put('reiseberichte/{report}', [AdminTravelReportController::class, 'update'])->name('reports.update');

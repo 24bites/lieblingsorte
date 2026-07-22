@@ -11,6 +11,39 @@
         @endif
     </div>
 
+    @unless ($isEdit)
+        @if (\App\Support\OpenAiReportWriter::isConfigured())
+            <div class="max-w-4xl mb-8 bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-3">
+                <h2 class="font-semibold text-forest-900">Ganzen Bericht mit KI vorschlagen (OpenAI)</h2>
+                <p class="text-sm text-forest-500">
+                    Erstellt aus einem Thema einen vollständigen Entwurf &ndash; Titel, Teaser, Text mit
+                    Zwischenüberschriften und SEO-Felder &ndash; und legt ihn unveröffentlicht an, damit du ihn direkt
+                    danach prüfen und anpassen kannst.
+                </p>
+                <form action="{{ route('admin.reports.ai-draft') }}" method="POST" class="space-y-2">
+                    @csrf
+                    <input type="text" name="ai_topic" required placeholder="Thema, z. B. Ein Wochenende auf Föhr im Winter" value="{{ old('ai_topic') }}" class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm">
+                    @error('ai_topic') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
+                    <textarea name="ai_context" rows="2" placeholder="Optionaler Kontext, z. B. besuchte Orte, Jahreszeit, besondere Erlebnisse" class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm">{{ old('ai_context') }}</textarea>
+                    <input type="text" name="ai_author_name" placeholder="Autor/in (optional, Standard: {{ auth()->user()->name }})" value="{{ old('ai_author_name') }}" class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm">
+                    <button type="submit" class="rounded-xl bg-forest-700 hover:bg-forest-800 text-white text-sm font-semibold px-4 py-2">Entwurf erstellen</button>
+                </form>
+            </div>
+        @else
+            <div class="max-w-4xl mb-8 bg-amber-50 ring-1 ring-amber-300 text-amber-900 rounded-2xl p-4 text-sm">
+                Kein OpenAI-API-Key hinterlegt &ndash; ein KI-Entwurf kann nicht erstellt werden. Key unter
+                <a href="{{ route('admin.settings.edit') }}" class="underline font-medium">Einstellungen</a> hinterlegen,
+                oder den Bericht unten manuell anlegen.
+            </div>
+        @endif
+
+        <div class="max-w-4xl mb-6 flex items-center gap-3 text-sm text-forest-400">
+            <div class="flex-1 border-t border-sand-200"></div>
+            oder manuell ausfüllen
+            <div class="flex-1 border-t border-sand-200"></div>
+        </div>
+    @endunless
+
     <form action="{{ $isEdit ? route('admin.reports.update', $report) : route('admin.reports.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8 max-w-4xl">
         @csrf
         @if ($isEdit) @method('PUT') @endif

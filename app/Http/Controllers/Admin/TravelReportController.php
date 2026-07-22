@@ -76,6 +76,37 @@ class TravelReportController extends Controller
         return app(\App\Http\Controllers\TravelReportController::class)->show($request, $report, preview: true);
     }
 
+    public function generateAiDraft(Request $request)
+    {
+        $data = $request->validate([
+            'ai_topic' => ['required', 'string', 'max:255'],
+            'ai_context' => ['nullable', 'string', 'max:500'],
+            'ai_author_name' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        set_time_limit(120);
+
+        try {
+            $draft = OpenAiReportWriter::draft($data['ai_topic'], $data['ai_context'] ?? null);
+        } catch (Throwable $e) {
+            return back()->withErrors(['ai_topic' => $e->getMessage()])->withInput();
+        }
+
+        $report = TravelReport::create([
+            'title' => $draft['title'],
+            'excerpt' => mb_substr($draft['excerpt'] ?? $draft['title'], 0, 255),
+            'content' => $draft['content'],
+            'author_name' => filled($data['ai_author_name'] ?? null) ? $data['ai_author_name'] : $request->user()->name,
+            'seo_title' => $draft['seo_title'] ?? null,
+            'seo_description' => $draft['seo_description'] ?? null,
+            'is_published' => false,
+            'ai_generated' => true,
+        ]);
+
+        return redirect()->route('admin.reports.edit', $report)
+            ->with('status', 'KI-Entwurf wurde erstellt (unveröffentlicht). Bitte alle Angaben prüfen, bevor du den Bericht veröffentlichst.');
+    }
+
     public function generateAiText(Request $request, TravelReport $report)
     {
         $request->validate([

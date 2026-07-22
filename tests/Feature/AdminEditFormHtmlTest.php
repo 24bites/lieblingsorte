@@ -266,4 +266,26 @@ class AdminEditFormHtmlTest extends TestCase
         $response->assertOk();
         $this->assertNoNestedForms($response->getContent());
     }
+
+    public function test_report_create_page_has_no_nested_forms_when_ai_draft_form_is_shown(): void
+    {
+        config(['services.openai.key' => 'test-key']);
+
+        $response = $this->actingAs($this->admin())->get(route('admin.reports.create'));
+
+        $response->assertOk();
+        $response->assertSee('Ganzen Bericht mit KI vorschlagen');
+        $this->assertNoNestedForms($response->getContent());
+    }
+
+    public function test_report_create_page_ai_draft_form_is_hidden_without_an_api_key(): void
+    {
+        config(['services.openai.key' => null]);
+
+        $response = $this->actingAs($this->admin())->get(route('admin.reports.create'));
+
+        $response->assertOk();
+        $response->assertDontSee('Ganzen Bericht mit KI vorschlagen');
+        $this->assertNoNestedForms($response->getContent());
+    }
 }
