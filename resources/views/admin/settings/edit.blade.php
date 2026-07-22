@@ -64,7 +64,7 @@
         <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-5">
             <h2 class="font-semibold text-forest-900">KI-Crons</h2>
             <p class="text-sm text-forest-500">
-                Steuert die beiden automatischen Hintergrundaufgaben einzeln. Änderungen wirken beim nächsten
+                Steuert die automatischen Hintergrundaufgaben einzeln. Änderungen wirken beim nächsten
                 Scheduler-Durchlauf (jede Minute per Crontab), ohne Deployment.
             </p>
 
@@ -96,6 +96,26 @@
                     <span class="text-sm text-forest-700">Minuten</span>
                 </div>
                 @error('regions_auto_generate_interval')
+                    <p class="text-xs text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="rounded-xl border border-sand-200 p-4 space-y-3">
+                <label class="flex items-center gap-2 text-sm font-medium text-forest-800">
+                    <input type="checkbox" name="regions_complete_content_enabled" value="1" {{ old('regions_complete_content_enabled', $aiCrons['regions_complete_content']['enabled']) ? 'checked' : '' }} class="rounded text-forest-600">
+                    Regionen automatisch fertigstellen (<code>regions:complete-content</code>)
+                </label>
+                <p class="text-xs text-forest-500">
+                    Erstellt für freigegebene KI-Regionen und manuell angelegte Regionen automatisch ein Titelbild,
+                    füllt fehlende Reisetipps bis auf 12 auf (inkl. KI-Bild je Tipp) und veröffentlicht die Region,
+                    sobald alles fertig ist.
+                </p>
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-forest-700">Alle</label>
+                    <input type="number" name="regions_complete_content_interval" min="1" max="59" value="{{ old('regions_complete_content_interval', $aiCrons['regions_complete_content']['interval']) }}" class="w-20 rounded-xl border border-sand-300 px-3 py-1.5 text-sm">
+                    <span class="text-sm text-forest-700">Minuten</span>
+                </div>
+                @error('regions_complete_content_interval')
                     <p class="text-xs text-red-600">{{ $message }}</p>
                 @enderror
             </div>

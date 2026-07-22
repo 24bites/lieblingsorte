@@ -33,6 +33,10 @@ class SettingController extends Controller
                 'enabled' => AiCronSettings::enabled(AiCronSettings::REGIONS_AUTO_GENERATE),
                 'interval' => AiCronSettings::intervalMinutes(AiCronSettings::REGIONS_AUTO_GENERATE),
             ],
+            'regions_complete_content' => [
+                'enabled' => AiCronSettings::enabled(AiCronSettings::REGIONS_COMPLETE_CONTENT),
+                'interval' => AiCronSettings::intervalMinutes(AiCronSettings::REGIONS_COMPLETE_CONTENT),
+            ],
         ];
 
         return view('admin.settings.edit', compact('settings', 'openaiKeyConfigured', 'openaiKeyPreview', 'aiCrons'));
@@ -55,6 +59,8 @@ class SettingController extends Controller
             'images_ai_replace_interval' => ['required', 'integer', 'min:1', 'max:59'],
             'regions_auto_generate_enabled' => ['nullable', 'boolean'],
             'regions_auto_generate_interval' => ['required', 'integer', 'min:1', 'max:59'],
+            'regions_complete_content_enabled' => ['nullable', 'boolean'],
+            'regions_complete_content_interval' => ['required', 'integer', 'min:1', 'max:59'],
         ]);
 
         // A blank field means "leave unchanged" — the field is never pre-filled with the real secret,
@@ -68,12 +74,15 @@ class SettingController extends Controller
             $data['openai_api_key'], $data['remove_openai_api_key'],
             $data['images_ai_replace_enabled'], $data['images_ai_replace_interval'],
             $data['regions_auto_generate_enabled'], $data['regions_auto_generate_interval'],
+            $data['regions_complete_content_enabled'], $data['regions_complete_content_interval'],
         );
 
         AiCronSettings::setEnabled(AiCronSettings::IMAGES_AI_REPLACE, $request->boolean('images_ai_replace_enabled'));
         AiCronSettings::setIntervalMinutes(AiCronSettings::IMAGES_AI_REPLACE, (int) $request->input('images_ai_replace_interval'));
         AiCronSettings::setEnabled(AiCronSettings::REGIONS_AUTO_GENERATE, $request->boolean('regions_auto_generate_enabled'));
         AiCronSettings::setIntervalMinutes(AiCronSettings::REGIONS_AUTO_GENERATE, (int) $request->input('regions_auto_generate_interval'));
+        AiCronSettings::setEnabled(AiCronSettings::REGIONS_COMPLETE_CONTENT, $request->boolean('regions_complete_content_enabled'));
+        AiCronSettings::setIntervalMinutes(AiCronSettings::REGIONS_COMPLETE_CONTENT, (int) $request->input('regions_complete_content_interval'));
 
         foreach ($data as $key => $value) {
             Setting::set($key, $value ?? '');

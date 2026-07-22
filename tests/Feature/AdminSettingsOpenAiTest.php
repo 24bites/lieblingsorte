@@ -30,6 +30,7 @@ class AdminSettingsOpenAiTest extends TestCase
             'contact_email' => 'hallo@lieblingsorte.test',
             'images_ai_replace_interval' => 10,
             'regions_auto_generate_interval' => 10,
+            'regions_complete_content_interval' => 10,
         ], $overrides);
     }
 

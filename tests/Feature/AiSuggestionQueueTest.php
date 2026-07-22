@@ -50,14 +50,30 @@ class AiSuggestionQueueTest extends TestCase
         $response->assertDontSee('Bereits abgelehnt');
     }
 
-    public function test_approve_publishes_the_region(): void
+    public function test_approve_marks_the_region_as_approved_without_publishing_immediately(): void
     {
         $region = $this->aiRegion();
 
         $response = $this->actingAs($this->admin())->post(route('admin.ai-suggestions.approve', $region));
 
         $response->assertRedirect();
-        $this->assertTrue($region->fresh()->is_published);
+        $region->refresh();
+        $this->assertNotNull($region->approved_at);
+        $this->assertFalse($region->is_published);
+    }
+
+    public function test_approved_region_disappears_from_the_pending_queue(): void
+    {
+        $admin = $this->admin();
+        $region = $this->aiRegion();
+
+        $this->actingAs($admin)->post(route('admin.ai-suggestions.approve', $region));
+
+        // First GET consumes the "... wurde freigegeben" flash message, which
+        // itself contains the region name; the second reflects the real page.
+        $this->actingAs($admin)->get(route('admin.ai-suggestions.index'));
+        $queue = $this->actingAs($admin)->get(route('admin.ai-suggestions.index'));
+        $queue->assertDontSee($region->name);
     }
 
     public function test_reject_hides_it_from_the_queue_without_deleting_it(): void

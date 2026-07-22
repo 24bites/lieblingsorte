@@ -33,6 +33,8 @@ class Region extends Model
         'is_published',
         'ai_generated',
         'rejected_at',
+        'approved_at',
+        'content_completed_at',
         'sort_order',
     ];
 
@@ -42,6 +44,8 @@ class Region extends Model
             'is_published' => 'boolean',
             'ai_generated' => 'boolean',
             'rejected_at' => 'datetime',
+            'approved_at' => 'datetime',
+            'content_completed_at' => 'datetime',
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
         ];
@@ -84,7 +88,24 @@ class Region extends Model
 
     public function scopePendingAiReview($query)
     {
-        return $query->where('ai_generated', true)->where('is_published', false)->whereNull('rejected_at');
+        return $query->where('ai_generated', true)->where('is_published', false)
+            ->whereNull('rejected_at')->whereNull('approved_at');
+    }
+
+    /**
+     * Regions the images/tips auto-completion cron (regions:complete-content)
+     * should still work on: approved KI suggestions, or any manually created
+     * region - but never one already finished, rejected, or still awaiting
+     * KI-Vorschläge review.
+     */
+    public function scopeNeedsContentCompletion($query)
+    {
+        return $query->whereNull('content_completed_at')
+            ->whereNull('rejected_at')
+            ->where(function ($q) {
+                $q->where('ai_generated', false)
+                    ->orWhereNotNull('approved_at');
+            });
     }
 
     public function getRouteKeyName(): string

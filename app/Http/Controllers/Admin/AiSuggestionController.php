@@ -16,9 +16,9 @@ class AiSuggestionController extends Controller
 
     public function approve(Region $region)
     {
-        $region->update(['is_published' => true]);
+        $region->update(['approved_at' => now()]);
 
-        return back()->with('status', "\"{$region->name}\" wurde veröffentlicht.");
+        return back()->with('status', "\"{$region->name}\" wurde freigegeben und wird im Hintergrund fertiggestellt (Titelbild, Reisetipps, Tipp-Bilder) und danach automatisch veröffentlicht.");
     }
 
     public function reject(Region $region)

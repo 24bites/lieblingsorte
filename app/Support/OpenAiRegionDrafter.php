@@ -165,4 +165,92 @@ class OpenAiRegionDrafter
 
         return $name !== '' ? $name : null;
     }
+
+    /**
+     * Drafts one additional travel tip for an already-existing region, for
+     * the regions:complete-content cron topping a region up to 12 tips.
+     * Avoids duplicating $existingTitles.
+     */
+    public static function draftAdditionalTip(string $regionName, string $regionCountry, string $regionDescription, array $existingTitles): array
+    {
+        $apiKey = OpenAiConfig::apiKey();
+
+        if (blank($apiKey)) {
+            throw new RuntimeException('OPENAI_API_KEY ist nicht konfiguriert.');
+        }
+
+        $existingList = empty($existingTitles) ? 'keine' : implode(', ', $existingTitles);
+
+        $schema = <<<'JSON'
+        {
+          "title": "string",
+          "short_description": "max. 200 Zeichen",
+          "description": "mehrere Sätze Fließtext",
+          "highlights": ["string", "..."],
+          "location_name": "string oder null",
+          "address": "string oder null",
+          "latitude": "Dezimalzahl oder null",
+          "longitude": "Dezimalzahl oder null",
+          "duration": "string oder null",
+          "difficulty": "einer von: leicht, mittel, anspruchsvoll, oder null",
+          "best_season": "string oder null",
+          "price_information": "string oder null",
+          "opening_hours": "string oder null",
+          "parking_information": "string oder null",
+          "arrival_information": "string oder null",
+          "website_url": "string oder null",
+          "phone": "string oder null",
+          "email": "string oder null",
+          "rating": "Zahl zwischen 0 und 5 oder null",
+          "family_friendly": "boolean",
+          "stroller_friendly": "boolean",
+          "dog_friendly": "boolean",
+          "indoor": "boolean",
+          "free_entry": "boolean",
+          "featured": "boolean"
+        }
+        JSON;
+
+        $response = Http::withToken($apiKey)
+            ->timeout(120)
+            ->retry(2, 1000)
+            ->post('https://api.openai.com/v1/chat/completions', [
+                'model' => config('services.openai.text_model', 'gpt-4o-mini'),
+                'response_format' => ['type' => 'json_object'],
+                'temperature' => 0.8,
+                'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' => 'Du bist ein erfahrener deutschsprachiger Reiseredakteur. Du recherchierst '
+                            .'sorgfältig, erfindest keine falschen Fakten (Adressen, Preise, Öffnungszeiten dürfen '
+                            .'"null" sein, wenn du sie nicht sicher weißt) und schreibst in einem einladenden, '
+                            .'aber sachlichen Reiseführer-Stil auf Deutsch.',
+                    ],
+                    [
+                        'role' => 'user',
+                        'content' => "Ergänze für die Reiseregion oder Stadt \"{$regionName}\" ({$regionCountry}) "
+                            .'einen weiteren, konkreten Reisetipp (Sehenswürdigkeit, Aktivität, Restaurant, '
+                            .'Aussichtspunkt o. Ä.). Kontext zur Region: '.$regionDescription."\n"
+                            .'Er darf keinen der bereits vorhandenen Tipps duplizieren oder sehr ähnlich sein: '
+                            ."{$existingList}. Antworte ausschließlich mit einem JSON-Objekt exakt nach folgendem "
+                            ."Schema (Werte sind Beispiele für den Typ, keine Vorgabe für den Inhalt):\n{$schema}",
+                    ],
+                ],
+            ]);
+
+        if ($response->failed()) {
+            throw new RuntimeException(
+                'OpenAI-Anfrage fehlgeschlagen: '.$response->json('error.message', (string) $response->status())
+            );
+        }
+
+        $content = $response->json('choices.0.message.content');
+        $data = json_decode((string) $content, true);
+
+        if (! is_array($data) || empty($data['title'])) {
+            throw new RuntimeException('OpenAI-Antwort konnte nicht als gültiger Tipp-Entwurf gelesen werden.');
+        }
+
+        return $data;
+    }
 }

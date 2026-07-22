@@ -8,8 +8,9 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Persists an OpenAiRegionDrafter draft array as an unpublished Region plus
- * its TravelTips. Shared by the manual admin "KI-Regionsgenerator" flow and
- * the regions:auto-generate cron so both save drafts the same way.
+ * its TravelTips. Shared by the manual admin "KI-Regionsgenerator" flow, the
+ * regions:auto-generate cron, and the regions:complete-content cron (which
+ * uses createTip() alone to add one additional tip to an existing region).
  */
 class RegionDraftPersister
 {
@@ -40,40 +41,45 @@ class RegionDraftPersister
                     continue;
                 }
 
-                TravelTip::create([
-                    'region_id' => $region->id,
-                    'title' => $tipDraft['title'],
-                    'short_description' => mb_substr($tipDraft['short_description'] ?? $tipDraft['title'], 0, 255),
-                    'description' => $tipDraft['description'] ?? '',
-                    'location_name' => $tipDraft['location_name'] ?? null,
-                    'address' => $tipDraft['address'] ?? null,
-                    'latitude' => $tipDraft['latitude'] ?? null,
-                    'longitude' => $tipDraft['longitude'] ?? null,
-                    'duration' => $tipDraft['duration'] ?? null,
-                    'difficulty' => in_array($tipDraft['difficulty'] ?? null, ['leicht', 'mittel', 'anspruchsvoll'], true)
-                        ? $tipDraft['difficulty'] : null,
-                    'best_season' => $tipDraft['best_season'] ?? null,
-                    'price_information' => $tipDraft['price_information'] ?? null,
-                    'opening_hours' => $tipDraft['opening_hours'] ?? null,
-                    'parking_information' => $tipDraft['parking_information'] ?? null,
-                    'arrival_information' => $tipDraft['arrival_information'] ?? null,
-                    'website_url' => $tipDraft['website_url'] ?? null,
-                    'phone' => $tipDraft['phone'] ?? null,
-                    'email' => $tipDraft['email'] ?? null,
-                    'rating' => $tipDraft['rating'] ?? null,
-                    'family_friendly' => (bool) ($tipDraft['family_friendly'] ?? false),
-                    'stroller_friendly' => (bool) ($tipDraft['stroller_friendly'] ?? false),
-                    'dog_friendly' => (bool) ($tipDraft['dog_friendly'] ?? false),
-                    'indoor' => (bool) ($tipDraft['indoor'] ?? false),
-                    'free_entry' => (bool) ($tipDraft['free_entry'] ?? false),
-                    'featured' => (bool) ($tipDraft['featured'] ?? false),
-                    'highlights' => array_values(array_filter((array) ($tipDraft['highlights'] ?? []))),
-                    'is_published' => false,
-                    'sort_order' => $index,
-                ]);
+                self::createTip($region, $tipDraft, $index);
             }
 
             return $region;
         });
+    }
+
+    public static function createTip(Region $region, array $tipDraft, int $sortOrder): TravelTip
+    {
+        return TravelTip::create([
+            'region_id' => $region->id,
+            'title' => $tipDraft['title'],
+            'short_description' => mb_substr($tipDraft['short_description'] ?? $tipDraft['title'], 0, 255),
+            'description' => $tipDraft['description'] ?? '',
+            'location_name' => $tipDraft['location_name'] ?? null,
+            'address' => $tipDraft['address'] ?? null,
+            'latitude' => $tipDraft['latitude'] ?? null,
+            'longitude' => $tipDraft['longitude'] ?? null,
+            'duration' => $tipDraft['duration'] ?? null,
+            'difficulty' => in_array($tipDraft['difficulty'] ?? null, ['leicht', 'mittel', 'anspruchsvoll'], true)
+                ? $tipDraft['difficulty'] : null,
+            'best_season' => $tipDraft['best_season'] ?? null,
+            'price_information' => $tipDraft['price_information'] ?? null,
+            'opening_hours' => $tipDraft['opening_hours'] ?? null,
+            'parking_information' => $tipDraft['parking_information'] ?? null,
+            'arrival_information' => $tipDraft['arrival_information'] ?? null,
+            'website_url' => $tipDraft['website_url'] ?? null,
+            'phone' => $tipDraft['phone'] ?? null,
+            'email' => $tipDraft['email'] ?? null,
+            'rating' => $tipDraft['rating'] ?? null,
+            'family_friendly' => (bool) ($tipDraft['family_friendly'] ?? false),
+            'stroller_friendly' => (bool) ($tipDraft['stroller_friendly'] ?? false),
+            'dog_friendly' => (bool) ($tipDraft['dog_friendly'] ?? false),
+            'indoor' => (bool) ($tipDraft['indoor'] ?? false),
+            'free_entry' => (bool) ($tipDraft['free_entry'] ?? false),
+            'featured' => (bool) ($tipDraft['featured'] ?? false),
+            'highlights' => array_values(array_filter((array) ($tipDraft['highlights'] ?? []))),
+            'is_published' => false,
+            'sort_order' => $sortOrder,
+        ]);
     }
 }

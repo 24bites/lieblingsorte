@@ -6,7 +6,11 @@
     <div class="flex items-center justify-between mb-6">
         <div>
             <h1 class="text-2xl font-semibold text-forest-900">KI-Vorschläge</h1>
-            <p class="text-sm text-forest-500 mt-1">Von der KI automatisch erstellte Regionen. Bitte prüfen, bevor du sie veröffentlichst.</p>
+            <p class="text-sm text-forest-500 mt-1">
+                Von der KI automatisch erstellte Regionen. Bitte prüfen, bevor du sie freigibst &ndash; nach der Freigabe
+                werden Titelbild, fehlende Reisetipps (bis 12) und Tipp-Bilder automatisch im Hintergrund ergänzt und
+                die Region danach selbstständig veröffentlicht.
+            </p>
         </div>
     </div>
 

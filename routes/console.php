@@ -17,3 +17,6 @@ Schedule::command('images:ai-replace')->cron("*/{$imagesInterval} * * * *")->wit
 
 $regionsInterval = AiCronSettings::intervalMinutes(AiCronSettings::REGIONS_AUTO_GENERATE);
 Schedule::command('regions:auto-generate')->cron("*/{$regionsInterval} * * * *")->withoutOverlapping();
+
+$completeContentInterval = AiCronSettings::intervalMinutes(AiCronSettings::REGIONS_COMPLETE_CONTENT);
+Schedule::command('regions:complete-content')->cron("*/{$completeContentInterval} * * * *")->withoutOverlapping();

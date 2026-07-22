@@ -20,6 +20,8 @@ class AiCronSettings
 
     public const REGIONS_AUTO_GENERATE = 'regions_auto_generate';
 
+    public const REGIONS_COMPLETE_CONTENT = 'regions_complete_content';
+
     private const LEGACY_KEY = 'ai_crons_enabled';
 
     private const DEFAULT_INTERVAL_MINUTES = 10;
