@@ -14,6 +14,7 @@ class Media extends Model
         'mediable_type',
         'mediable_id',
         'file_path',
+        'optimized_path',
         'alt_text',
         'caption',
         'sort_order',
@@ -37,9 +38,18 @@ class Media extends Model
         return $this->morphTo();
     }
 
+    /**
+     * The web-optimized variant is served whenever one exists; falls back to
+     * the untouched original (e.g. before the optimizer/backfill ran).
+     */
+    public function displayPath(): string
+    {
+        return $this->optimized_path ?? $this->file_path;
+    }
+
     public function getUrlAttribute(): string
     {
-        return Storage::disk('public')->url($this->file_path);
+        return Storage::disk('public')->url($this->displayPath());
     }
 
     public function hasCredit(): bool

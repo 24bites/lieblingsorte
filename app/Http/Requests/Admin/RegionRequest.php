@@ -34,8 +34,8 @@ class RegionRequest extends FormRequest
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'labels' => ['nullable', 'array'],
             'labels.*' => ['exists:labels,id'],
-            'hero_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:min_width=400,min_height=300'],
-            'gallery_images.*' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:min_width=400,min_height=300'],
+            'hero_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:25600', 'dimensions:min_width=400,min_height=300'],
+            'gallery_images.*' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:25600', 'dimensions:min_width=400,min_height=300'],
         ];
     }
 }

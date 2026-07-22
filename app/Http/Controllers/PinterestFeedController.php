@@ -44,7 +44,8 @@ class PinterestFeedController extends Controller
             return null;
         }
 
-        $extension = strtolower(pathinfo($cover->file_path, PATHINFO_EXTENSION));
+        $path = $cover->displayPath();
+        $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
         $mimeType = match ($extension) {
             'png' => 'image/png',
             'webp' => 'image/webp',
@@ -54,8 +55,8 @@ class PinterestFeedController extends Controller
         return [
             'url' => $cover->url,
             'type' => $mimeType,
-            'length' => Storage::disk('public')->exists($cover->file_path)
-                ? Storage::disk('public')->size($cover->file_path)
+            'length' => Storage::disk('public')->exists($path)
+                ? Storage::disk('public')->size($path)
                 : 0,
         ];
     }

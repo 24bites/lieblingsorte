@@ -6,6 +6,11 @@
 @endphp
 
 @section('content')
+    <style>
+        @keyframes hero-kenburns { from { transform: scale(1); } to { transform: scale(1.08); } }
+        .hero-slide-active { animation: hero-kenburns 5.5s ease-out forwards; }
+    </style>
+
     <section class="relative">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 lg:pt-16 pb-16 grid lg:grid-cols-2 gap-10 items-center">
             <div>
@@ -30,13 +35,47 @@
                 </div>
             </div>
 
-            <div class="relative rounded-[2.5rem] overflow-hidden shadow-xl aspect-[4/3]">
-                @php($heroRegion = $regions->first())
-                @if ($heroRegion && $heroRegion->coverImage())
-                    <img src="{{ $heroRegion->coverImage()->url }}" alt="{{ $heroRegion->coverImage()->alt_text }}" class="w-full h-full object-cover">
-                @else
-                    <div class="w-full h-full bg-forest-100"></div>
+            @php($heroImages = $regions->map->coverImage()->filter()->values())
+            <div
+                class="relative rounded-[2.5rem] overflow-hidden shadow-xl aspect-[4/3]"
+                @if ($heroImages->count() > 1)
+                    x-data="{
+                        active: 0,
+                        count: {{ $heroImages->count() }},
+                        timer: null,
+                        paused: false,
+                        reduceMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+                        start() {
+                            if (this.reduceMotion) return;
+                            this.timer = setInterval(() => {
+                                if (!this.paused) this.active = (this.active + 1) % this.count;
+                            }, 4500);
+                        },
+                    }"
+                    x-init="start(); document.addEventListener('visibilitychange', () => paused = document.hidden)"
+                    @mouseenter="paused = true"
+                    @mouseleave="paused = false"
                 @endif
+            >
+                @forelse ($heroImages as $index => $image)
+                    <img
+                        src="{{ $image->url }}"
+                        alt="{{ $image->alt_text }}"
+                        class="hero-slide absolute inset-0 w-full h-full object-cover"
+                        @if ($heroImages->count() > 1)
+                            x-show="active === {{ $index }}"
+                            :class="{ 'hero-slide-active': active === {{ $index }} && !reduceMotion }"
+                            x-transition:enter="transition-opacity duration-1000"
+                            x-transition:enter-start="opacity-0"
+                            x-transition:enter-end="opacity-100"
+                            x-transition:leave="transition-opacity duration-1000"
+                            x-transition:leave-start="opacity-100"
+                            x-transition:leave-end="opacity-0"
+                        @endif
+                    >
+                @empty
+                    <div class="w-full h-full bg-forest-100"></div>
+                @endforelse
             </div>
         </div>
     </section>

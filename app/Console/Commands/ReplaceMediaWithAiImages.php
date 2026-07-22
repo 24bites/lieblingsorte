@@ -87,6 +87,7 @@ class ReplaceMediaWithAiImages extends Command
         $directory = dirname($media->file_path);
         $slug = $model->slug;
         $oldPath = $media->file_path;
+        $oldOptimizedPath = $media->optimized_path;
 
         try {
             $contents = OpenAiImageGenerator::generate($prompt);
@@ -101,14 +102,18 @@ class ReplaceMediaWithAiImages extends Command
             return false;
         }
 
-        $media->update(['file_path' => $newPath, 'source' => 'ai']);
+        $newOptimizedPath = ImageUploadService::optimize($newPath);
+
+        $media->update(['file_path' => $newPath, 'optimized_path' => $newOptimizedPath, 'source' => 'ai']);
 
         if ($model instanceof Region && $media->is_cover) {
             $model->update(['hero_image' => $newPath]);
         }
 
         Storage::disk('public')->delete($oldPath);
-        Storage::disk('public')->delete(preg_replace('/\.[^.]+$/', '.webp', $oldPath));
+        if ($oldOptimizedPath) {
+            Storage::disk('public')->delete($oldOptimizedPath);
+        }
 
         $this->line("  #{$media->id}: {$oldPath} -> {$newPath}");
 

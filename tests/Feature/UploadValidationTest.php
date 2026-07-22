@@ -46,7 +46,7 @@ class UploadValidationTest extends TestCase
     {
         Storage::fake('public');
 
-        $file = UploadedFile::fake()->image('too-big.jpg')->size(6000);
+        $file = UploadedFile::fake()->image('too-big.jpg')->size(30000);
 
         $response = $this->actingAs($this->admin())->post('/admin/regionen', [
             'name' => 'Südtirol',
@@ -99,5 +99,53 @@ class UploadValidationTest extends TestCase
         $response->assertRedirect(route('admin.regions.index'));
         $region = Region::where('name', 'Südtirol')->firstOrFail();
         $this->assertTrue($region->media()->where('is_cover', true)->exists());
+    }
+
+    public function test_large_iphone_sized_photo_is_now_accepted(): void
+    {
+        Storage::fake('public');
+
+        // Between the old 5 MB Laravel cap and the new 25 MB one - exactly
+        // the range that made real iPhone photos fail before this fix.
+        $file = UploadedFile::fake()->image('iphone-foto.jpg', 4032, 3024)->size(15000);
+
+        $response = $this->actingAs($this->admin())->post('/admin/regionen', [
+            'name' => 'Südtirol',
+            'type' => 'Region',
+            'country' => 'Italien',
+            'short_description' => 'x',
+            'description' => 'y',
+            'is_published' => '1',
+            'hero_image' => $file,
+        ]);
+
+        $response->assertSessionDoesntHaveErrors('hero_image');
+        $response->assertRedirect(route('admin.regions.index'));
+    }
+
+    public function test_uploaded_cover_image_gets_a_downscaled_web_optimized_variant(): void
+    {
+        Storage::fake('public');
+
+        $file = UploadedFile::fake()->image('suedtirol.jpg', 4032, 3024)->size(500);
+
+        $this->actingAs($this->admin())->post('/admin/regionen', [
+            'name' => 'Südtirol',
+            'type' => 'Region',
+            'country' => 'Italien',
+            'short_description' => 'x',
+            'description' => 'y',
+            'is_published' => '1',
+            'hero_image' => $file,
+        ]);
+
+        $region = Region::where('name', 'Südtirol')->firstOrFail();
+        $cover = $region->media()->where('is_cover', true)->firstOrFail();
+
+        $this->assertNotNull($cover->optimized_path);
+        Storage::disk('public')->assertExists($cover->optimized_path);
+
+        [$width, $height] = getimagesize(Storage::disk('public')->path($cover->optimized_path));
+        $this->assertLessThanOrEqual(2000, max($width, $height));
     }
 }
