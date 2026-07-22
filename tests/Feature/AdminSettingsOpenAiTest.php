@@ -28,6 +28,8 @@ class AdminSettingsOpenAiTest extends TestCase
             'site_claim' => 'Claim',
             'site_description' => 'Beschreibung',
             'contact_email' => 'hallo@lieblingsorte.test',
+            'images_ai_replace_interval' => 10,
+            'regions_auto_generate_interval' => 10,
         ], $overrides);
     }
 

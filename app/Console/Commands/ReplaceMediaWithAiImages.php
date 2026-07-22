@@ -28,7 +28,7 @@ class ReplaceMediaWithAiImages extends Command
 
     public function handle(): int
     {
-        if (! AiCronSettings::enabled()) {
+        if (! AiCronSettings::enabled(AiCronSettings::IMAGES_AI_REPLACE)) {
             $this->info('KI-Crons sind in den Einstellungen deaktiviert - überspringe.');
             Log::info('images:ai-replace: übersprungen (in Einstellungen deaktiviert).');
 

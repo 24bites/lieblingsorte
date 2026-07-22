@@ -59,14 +59,45 @@
                     </label>
                 @endif
             </div>
-            <div class="pt-1 border-t border-sand-100">
-                <label class="flex items-center gap-2 text-sm text-forest-700 mt-4">
-                    <input type="checkbox" name="ai_crons_enabled" value="1" {{ old('ai_crons_enabled', $aiCronsEnabled) ? 'checked' : '' }} class="rounded text-forest-600">
-                    Automatische KI-Crons aktiv (Bilder ersetzen, neue Regionen vorschlagen)
+        </div>
+
+        <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-5">
+            <h2 class="font-semibold text-forest-900">KI-Crons</h2>
+            <p class="text-sm text-forest-500">
+                Steuert die beiden automatischen Hintergrundaufgaben einzeln. Änderungen wirken beim nächsten
+                Scheduler-Durchlauf (jede Minute per Crontab), ohne Deployment.
+            </p>
+
+            <div class="rounded-xl border border-sand-200 p-4 space-y-3">
+                <label class="flex items-center gap-2 text-sm font-medium text-forest-800">
+                    <input type="checkbox" name="images_ai_replace_enabled" value="1" {{ old('images_ai_replace_enabled', $aiCrons['images_ai_replace']['enabled']) ? 'checked' : '' }} class="rounded text-forest-600">
+                    Bilder automatisch durch KI ersetzen (<code>images:ai-replace</code>)
                 </label>
-                <p class="text-xs text-forest-500 mt-1">
-                    Deaktivieren pausiert <code>images:ai-replace</code> und <code>regions:auto-generate</code> sofort, ohne Deployment.
-                </p>
+                <p class="text-xs text-forest-500">Ersetzt Wikimedia-Fotos und generierte Platzhalter-Illustrationen schrittweise durch KI-Bilder.</p>
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-forest-700">Alle</label>
+                    <input type="number" name="images_ai_replace_interval" min="1" max="59" value="{{ old('images_ai_replace_interval', $aiCrons['images_ai_replace']['interval']) }}" class="w-20 rounded-xl border border-sand-300 px-3 py-1.5 text-sm">
+                    <span class="text-sm text-forest-700">Minuten</span>
+                </div>
+                @error('images_ai_replace_interval')
+                    <p class="text-xs text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="rounded-xl border border-sand-200 p-4 space-y-3">
+                <label class="flex items-center gap-2 text-sm font-medium text-forest-800">
+                    <input type="checkbox" name="regions_auto_generate_enabled" value="1" {{ old('regions_auto_generate_enabled', $aiCrons['regions_auto_generate']['enabled']) ? 'checked' : '' }} class="rounded text-forest-600">
+                    Neue Regionen per KI vorschlagen (<code>regions:auto-generate</code>)
+                </label>
+                <p class="text-xs text-forest-500">Erstellt unveröffentlichte Regionsentwürfe zur Prüfung in „KI-Vorschläge“ (max. 10 pro Tag).</p>
+                <div class="flex items-center gap-2">
+                    <label class="text-sm text-forest-700">Alle</label>
+                    <input type="number" name="regions_auto_generate_interval" min="1" max="59" value="{{ old('regions_auto_generate_interval', $aiCrons['regions_auto_generate']['interval']) }}" class="w-20 rounded-xl border border-sand-300 px-3 py-1.5 text-sm">
+                    <span class="text-sm text-forest-700">Minuten</span>
+                </div>
+                @error('regions_auto_generate_interval')
+                    <p class="text-xs text-red-600">{{ $message }}</p>
+                @enderror
             </div>
         </div>
 

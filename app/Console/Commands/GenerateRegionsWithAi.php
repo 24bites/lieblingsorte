@@ -26,7 +26,7 @@ class GenerateRegionsWithAi extends Command
 
     public function handle(): int
     {
-        if (! AiCronSettings::enabled()) {
+        if (! AiCronSettings::enabled(AiCronSettings::REGIONS_AUTO_GENERATE)) {
             $this->info('KI-Crons sind in den Einstellungen deaktiviert - überspringe.');
             Log::info('regions:auto-generate: übersprungen (in Einstellungen deaktiviert).');
 

@@ -23,9 +23,19 @@ class SettingController extends Controller
         // only whether one exists, and a short preview built from a decrypt-only helper.
         $openaiKeyPreview = OpenAiConfig::preview();
         $openaiKeyConfigured = $openaiKeyPreview !== null;
-        $aiCronsEnabled = AiCronSettings::enabled();
 
-        return view('admin.settings.edit', compact('settings', 'openaiKeyConfigured', 'openaiKeyPreview', 'aiCronsEnabled'));
+        $aiCrons = [
+            'images_ai_replace' => [
+                'enabled' => AiCronSettings::enabled(AiCronSettings::IMAGES_AI_REPLACE),
+                'interval' => AiCronSettings::intervalMinutes(AiCronSettings::IMAGES_AI_REPLACE),
+            ],
+            'regions_auto_generate' => [
+                'enabled' => AiCronSettings::enabled(AiCronSettings::REGIONS_AUTO_GENERATE),
+                'interval' => AiCronSettings::intervalMinutes(AiCronSettings::REGIONS_AUTO_GENERATE),
+            ],
+        ];
+
+        return view('admin.settings.edit', compact('settings', 'openaiKeyConfigured', 'openaiKeyPreview', 'aiCrons'));
     }
 
     public function update(Request $request)
@@ -41,7 +51,10 @@ class SettingController extends Controller
             'ad_slot_in_content' => ['nullable', 'string', 'max:5000'],
             'openai_api_key' => ['nullable', 'string', 'max:255'],
             'remove_openai_api_key' => ['nullable', 'boolean'],
-            'ai_crons_enabled' => ['nullable', 'boolean'],
+            'images_ai_replace_enabled' => ['nullable', 'boolean'],
+            'images_ai_replace_interval' => ['required', 'integer', 'min:1', 'max:59'],
+            'regions_auto_generate_enabled' => ['nullable', 'boolean'],
+            'regions_auto_generate_interval' => ['required', 'integer', 'min:1', 'max:59'],
         ]);
 
         // A blank field means "leave unchanged" — the field is never pre-filled with the real secret,
@@ -51,9 +64,16 @@ class SettingController extends Controller
         } elseif (filled($data['openai_api_key'] ?? null)) {
             OpenAiConfig::store(trim($data['openai_api_key']));
         }
-        unset($data['openai_api_key'], $data['remove_openai_api_key'], $data['ai_crons_enabled']);
+        unset(
+            $data['openai_api_key'], $data['remove_openai_api_key'],
+            $data['images_ai_replace_enabled'], $data['images_ai_replace_interval'],
+            $data['regions_auto_generate_enabled'], $data['regions_auto_generate_interval'],
+        );
 
-        AiCronSettings::setEnabled($request->boolean('ai_crons_enabled'));
+        AiCronSettings::setEnabled(AiCronSettings::IMAGES_AI_REPLACE, $request->boolean('images_ai_replace_enabled'));
+        AiCronSettings::setIntervalMinutes(AiCronSettings::IMAGES_AI_REPLACE, (int) $request->input('images_ai_replace_interval'));
+        AiCronSettings::setEnabled(AiCronSettings::REGIONS_AUTO_GENERATE, $request->boolean('regions_auto_generate_enabled'));
+        AiCronSettings::setIntervalMinutes(AiCronSettings::REGIONS_AUTO_GENERATE, (int) $request->input('regions_auto_generate_interval'));
 
         foreach ($data as $key => $value) {
             Setting::set($key, $value ?? '');
