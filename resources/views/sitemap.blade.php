@@ -31,4 +31,17 @@
         <priority>0.7</priority>
     </url>
     @endforeach
+    <url>
+        <loc>{{ route('reports.index') }}</loc>
+        <changefreq>weekly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    @foreach ($reports as $report)
+    <url>
+        <loc>{{ route('reports.show', $report) }}</loc>
+        <lastmod>{{ $report->updated_at->toAtomString() }}</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    @endforeach
 </urlset>

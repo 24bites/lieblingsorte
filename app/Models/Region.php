@@ -52,6 +52,11 @@ class Region extends Model
         return $this->hasMany(TravelTip::class);
     }
 
+    public function travelReports(): HasMany
+    {
+        return $this->hasMany(TravelReport::class);
+    }
+
     public function publishedTravelTips(): HasMany
     {
         return $this->travelTips()->where('is_published', true)->orderBy('sort_order');

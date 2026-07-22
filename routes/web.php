@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\LabelController as AdminLabelController;
 use App\Http\Controllers\Admin\MediaController as AdminMediaController;
 use App\Http\Controllers\Admin\RegionController as AdminRegionController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
+use App\Http\Controllers\Admin\TravelReportController as AdminTravelReportController;
 use App\Http\Controllers\Admin\TravelTipController as AdminTravelTipController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Auth\LoginController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SitemapController;
+use App\Http\Controllers\TravelReportController;
 use App\Http\Controllers\TravelTipController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,6 +28,8 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/regionen', [RegionController::class, 'index'])->name('regions.index');
 Route::get('/kategorien', [CategoryController::class, 'index'])->name('categories.index');
 Route::get('/kategorie/{category:slug}', [CategoryController::class, 'show'])->name('categories.show');
+Route::get('/reiseberichte', [TravelReportController::class, 'index'])->name('reports.index');
+Route::get('/reiseberichte/{report:slug}', [TravelReportController::class, 'show'])->name('reports.show');
 
 Route::middleware('throttle:30,1')->group(function () {
     Route::get('/suche', [SearchController::class, 'index'])->name('search');
@@ -74,6 +78,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('reisetipps/{tip}', [AdminTravelTipController::class, 'destroy'])->name('tips.destroy');
         Route::post('reisetipps/{tip}/ki-bild', [AdminTravelTipController::class, 'generateAiImage'])->name('tips.ai-image');
         Route::get('reisetipps/{tip}/vorschau', [AdminTravelTipController::class, 'preview'])->name('tips.preview');
+
+        Route::get('reiseberichte', [AdminTravelReportController::class, 'index'])->name('reports.index');
+        Route::get('reiseberichte/erstellen', [AdminTravelReportController::class, 'create'])->name('reports.create');
+        Route::post('reiseberichte', [AdminTravelReportController::class, 'store'])->name('reports.store');
+        Route::get('reiseberichte/{report}/bearbeiten', [AdminTravelReportController::class, 'edit'])->name('reports.edit');
+        Route::put('reiseberichte/{report}', [AdminTravelReportController::class, 'update'])->name('reports.update');
+        Route::delete('reiseberichte/{report}', [AdminTravelReportController::class, 'destroy'])->name('reports.destroy');
+        Route::post('reiseberichte/{report}/ki-text', [AdminTravelReportController::class, 'generateAiText'])->name('reports.ai-text');
+        Route::post('reiseberichte/{report}/ki-bild', [AdminTravelReportController::class, 'generateAiImage'])->name('reports.ai-image');
+        Route::get('reiseberichte/{report}/vorschau', [AdminTravelReportController::class, 'preview'])->name('reports.preview');
 
         Route::get('kategorien', [AdminCategoryController::class, 'index'])->name('categories.index');
         Route::get('kategorien/erstellen', [AdminCategoryController::class, 'create'])->name('categories.create');

@@ -57,6 +57,7 @@
                         ['route' => 'admin.dashboard', 'label' => 'Dashboard', 'active' => 'admin.dashboard'],
                         ['route' => 'admin.regions.index', 'label' => 'Regionen', 'active' => 'admin.regions.*'],
                         ['route' => 'admin.tips.index', 'label' => 'Reisetipps', 'active' => 'admin.tips.*'],
+                        ['route' => 'admin.reports.index', 'label' => 'Reiseberichte', 'active' => 'admin.reports.*'],
                         ['route' => 'admin.ai-region-generator.create', 'label' => 'KI-Regionsgenerator', 'active' => 'admin.ai-region-generator.*'],
                         ['route' => 'admin.ai-suggestions.index', 'label' => 'KI-Vorschläge', 'active' => 'admin.ai-suggestions.*'],
                         ['route' => 'admin.categories.index', 'label' => 'Kategorien', 'active' => 'admin.categories.*'],

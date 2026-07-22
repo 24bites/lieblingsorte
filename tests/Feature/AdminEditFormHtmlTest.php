@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Region;
+use App\Models\TravelReport;
 use App\Models\TravelTip;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -178,5 +179,62 @@ class AdminEditFormHtmlTest extends TestCase
 
         $response->assertRedirect(route('admin.tips.index'));
         $this->assertDatabaseHas('travel_tips', ['id' => $tip->id, 'description' => 'Geänderte Beschreibung']);
+    }
+
+    public function test_report_edit_page_has_no_nested_forms_when_ai_forms_are_shown(): void
+    {
+        // Regression: the "Text mit KI generieren" mini-form was originally
+        // placed inside the main edit form, exactly the bug this test class
+        // exists to catch.
+        config(['services.openai.key' => 'test-key']);
+
+        $report = TravelReport::create([
+            'title' => 'Ein Wochenende auf Föhr', 'excerpt' => 'Kurz',
+            'content' => 'Ein Absatz.', 'author_name' => 'Anna', 'is_published' => false,
+        ]);
+
+        $response = $this->actingAs($this->admin())->get(route('admin.reports.edit', $report));
+
+        $response->assertOk();
+        $response->assertSee('Text mit KI generieren');
+        $response->assertSee('Mit KI generieren');
+        $this->assertNoNestedForms($response->getContent());
+    }
+
+    public function test_report_edit_page_has_no_nested_forms_with_existing_media(): void
+    {
+        $report = TravelReport::create([
+            'title' => 'Ein Wochenende auf Föhr', 'excerpt' => 'Kurz',
+            'content' => 'Ein Absatz.', 'author_name' => 'Anna', 'is_published' => false,
+        ]);
+        $report->media()->create(['file_path' => 'reports/foehr/a.jpg', 'alt_text' => 'a', 'sort_order' => 0, 'is_cover' => true]);
+        $report->media()->create(['file_path' => 'reports/foehr/b.jpg', 'alt_text' => 'b', 'sort_order' => 1, 'is_cover' => false]);
+
+        $response = $this->actingAs($this->admin())->get(route('admin.reports.edit', $report));
+
+        $response->assertOk();
+        $this->assertNoNestedForms($response->getContent());
+    }
+
+    public function test_saving_report_changes_persists_with_ai_forms_present(): void
+    {
+        config(['services.openai.key' => 'test-key']);
+
+        $report = TravelReport::create([
+            'title' => 'Ein Wochenende auf Föhr', 'excerpt' => 'Kurz',
+            'content' => 'Ein Absatz.', 'author_name' => 'Anna', 'is_published' => false,
+        ]);
+
+        $response = $this->actingAs($this->admin())->put(route('admin.reports.update', $report), [
+            'title' => $report->title,
+            'slug' => $report->slug,
+            'excerpt' => $report->excerpt,
+            'content' => 'Geänderter Inhalt',
+            'author_name' => $report->author_name,
+            'is_published' => '1',
+        ]);
+
+        $response->assertRedirect(route('admin.reports.edit', $report));
+        $this->assertDatabaseHas('travel_reports', ['id' => $report->id, 'content' => 'Geänderter Inhalt', 'is_published' => true]);
     }
 }

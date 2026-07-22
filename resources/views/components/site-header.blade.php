@@ -15,6 +15,7 @@
             <a href="{{ route('regions.index') }}" class="hover:text-forest-900 transition {{ request()->routeIs('regions.index') ? 'text-forest-900' : '' }}">Entdecken</a>
             <a href="{{ route('regions.index') }}" class="hover:text-forest-900 transition">Regionen</a>
             <a href="{{ route('categories.index') }}" class="hover:text-forest-900 transition {{ request()->routeIs('categories.*') ? 'text-forest-900' : '' }}">Kategorien</a>
+            <a href="{{ route('reports.index') }}" class="hover:text-forest-900 transition {{ request()->routeIs('reports.*') ? 'text-forest-900' : '' }}">Reiseberichte</a>
         </nav>
 
         <form action="{{ route('search') }}" method="GET" class="hidden md:flex flex-1 max-w-sm relative" x-data="searchSuggestions()">
@@ -76,6 +77,7 @@
             <nav class="flex flex-col gap-3 text-forest-700 font-medium">
                 <a href="{{ route('regions.index') }}" class="py-2">Regionen</a>
                 <a href="{{ route('categories.index') }}" class="py-2">Kategorien</a>
+                <a href="{{ route('reports.index') }}" class="py-2">Reiseberichte</a>
                 <a href="{{ route('favorites.index') }}" class="py-2">Favoriten ({{ $favoriteCount }})</a>
             </nav>
         </div>
