@@ -2,4 +2,4 @@ User-agent: *
 Disallow: /admin
 Disallow: /favoriten
 
-Sitemap: /sitemap.xml
+Sitemap: https://24bites.de/sitemap.xml
