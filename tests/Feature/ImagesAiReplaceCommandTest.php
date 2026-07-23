@@ -80,6 +80,7 @@ class ImagesAiReplaceCommandTest extends TestCase
 
         $this->assertSame('ai', $tipMedia->source);
         $this->assertNotSame('tips/piazza-del-campo/piazza-del-campo-1.jpg', $tipMedia->file_path);
+        $this->assertDatabaseHas('ai_usage_logs', ['feature' => 'image', 'model' => 'gpt-image-1']);
     }
 
     public function test_upload_source_media_is_never_touched(): void

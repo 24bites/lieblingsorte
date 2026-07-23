@@ -35,6 +35,7 @@ class CompleteRegionContentCommandTest extends TestCase
                     'description' => 'Lang',
                 ])]],
             ],
+            'usage' => ['prompt_tokens' => 200, 'completion_tokens' => 150, 'total_tokens' => 350],
         ];
     }
 
@@ -86,6 +87,7 @@ class CompleteRegionContentCommandTest extends TestCase
         $this->assertTrue($region->media()->where('is_cover', true)->exists());
         $this->assertNotNull($region->hero_image);
         $this->assertFalse($region->is_published);
+        $this->assertDatabaseHas('ai_usage_logs', ['feature' => 'image']);
     }
 
     public function test_drafts_additional_tips_until_target_reached(): void
@@ -98,6 +100,7 @@ class CompleteRegionContentCommandTest extends TestCase
         $this->artisan('regions:complete-content', ['--steps' => 3])->assertSuccessful();
 
         $this->assertSame(12, $region->travelTips()->count());
+        $this->assertDatabaseHas('ai_usage_logs', ['feature' => 'region_tip_draft', 'total_tokens' => 350]);
     }
 
     public function test_generates_images_for_tips_without_one(): void

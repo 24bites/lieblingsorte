@@ -45,6 +45,7 @@ class AdminTravelReportAiTest extends TestCase
                 'choices' => [
                     ['message' => ['content' => "Ein handgeschriebener Absatz.\n\n## Der Abend\n\nNoch ein Absatz."]],
                 ],
+                'usage' => ['prompt_tokens' => 300, 'completion_tokens' => 400, 'total_tokens' => 700],
             ], 200),
         ]);
         $report = $this->report();
@@ -58,6 +59,7 @@ class AdminTravelReportAiTest extends TestCase
         $report->refresh();
         $this->assertStringContainsString('handgeschriebener Absatz', $report->content);
         $this->assertTrue($report->ai_generated);
+        $this->assertDatabaseHas('ai_usage_logs', ['feature' => 'report_write', 'total_tokens' => 700]);
     }
 
     public function test_ai_text_generation_failure_returns_validation_error_without_changing_content(): void
@@ -110,6 +112,7 @@ class AdminTravelReportAiTest extends TestCase
         Http::fake([
             'api.openai.com/v1/chat/completions' => Http::response([
                 'choices' => [['message' => ['content' => json_encode($draft)]]],
+                'usage' => ['prompt_tokens' => 300, 'completion_tokens' => 500, 'total_tokens' => 800],
             ], 200),
         ]);
     }
@@ -134,6 +137,7 @@ class AdminTravelReportAiTest extends TestCase
         $this->assertSame('SEO-Titel', $report->seo_title);
         $this->assertFalse($report->is_published);
         $this->assertTrue($report->ai_generated);
+        $this->assertDatabaseHas('ai_usage_logs', ['feature' => 'report_draft', 'total_tokens' => 800]);
     }
 
     public function test_draft_defaults_author_name_to_the_logged_in_admin(): void

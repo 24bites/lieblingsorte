@@ -22,6 +22,7 @@ class GenerateRegionsWithAiCommandTest extends TestCase
             'choices' => [
                 ['message' => ['content' => json_encode(['name' => $name])]],
             ],
+            'usage' => ['prompt_tokens' => 100, 'completion_tokens' => 50, 'total_tokens' => 150],
         ];
     }
 
@@ -44,6 +45,7 @@ class GenerateRegionsWithAiCommandTest extends TestCase
             'choices' => [
                 ['message' => ['content' => json_encode($draft)]],
             ],
+            'usage' => ['prompt_tokens' => 400, 'completion_tokens' => 300, 'total_tokens' => 700],
         ];
     }
 
@@ -63,6 +65,8 @@ class GenerateRegionsWithAiCommandTest extends TestCase
         $this->assertSame(2, Region::where('ai_generated', true)->count());
         $this->assertTrue(Region::where('name', 'Gardasee')->where('is_published', false)->exists());
         $this->assertTrue(Region::where('name', 'Algarve')->where('is_published', false)->exists());
+        $this->assertDatabaseHas('ai_usage_logs', ['feature' => 'region_place_name']);
+        $this->assertDatabaseHas('ai_usage_logs', ['feature' => 'region_draft']);
     }
 
     public function test_stops_at_daily_cap_even_if_limit_is_higher(): void

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\AiUsageLog;
 use App\Support\OpenAiSocialCopywriter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\RequestException;
@@ -21,7 +22,10 @@ class OpenAiSocialCopywriterTest extends TestCase
 
     private function fakeChatResponse(string $text): array
     {
-        return ['choices' => [['message' => ['content' => $text]]]];
+        return [
+            'choices' => [['message' => ['content' => $text]]],
+            'usage' => ['prompt_tokens' => 120, 'completion_tokens' => 40, 'total_tokens' => 160],
+        ];
     }
 
     public function test_writes_a_caption_for_each_platform(): void
@@ -33,6 +37,8 @@ class OpenAiSocialCopywriterTest extends TestCase
             $caption = OpenAiSocialCopywriter::write($platform, ['title' => 'Toskana', 'description' => 'Kurz']);
             $this->assertNotEmpty($caption);
         }
+
+        $this->assertSame(5, AiUsageLog::where('feature', 'social_caption')->count());
     }
 
     public function test_throws_for_unknown_platform(): void

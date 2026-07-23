@@ -31,6 +31,54 @@
         <a href="{{ route('admin.labels.create') }}" class="rounded-xl border border-forest-300 hover:bg-forest-50 text-forest-800 text-sm font-semibold px-5 py-2.5">+ Neues Label</a>
     </div>
 
+    @php
+        $featureLabels = [
+            'region_draft' => 'Regions-Entwürfe', 'region_place_name' => 'Ortsvorschläge',
+            'region_tip_draft' => 'Tipp-Entwürfe', 'report_draft' => 'Berichts-Entwürfe',
+            'report_write' => 'Berichts-Texte', 'social_caption' => 'Social-Captions', 'image' => 'Bilder',
+        ];
+    @endphp
+    <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 mb-10">
+        <h2 class="font-semibold text-forest-900 mb-1">KI-Nutzung (geschätzt)</h2>
+        <p class="text-xs text-forest-400 mb-4">Schätzung auf Basis der von OpenAI zurückgegebenen Token-Zahlen &ndash; kein Ersatz für die echte OpenAI-Abrechnung.</p>
+        <div class="grid sm:grid-cols-2 gap-5 mb-5">
+            <div class="rounded-xl border border-sand-200 p-4">
+                <p class="text-xs text-forest-500">Heute</p>
+                <p class="text-2xl font-semibold text-forest-900 mt-1">${{ number_format($aiUsage['today']['cost'], 2) }}</p>
+                <p class="text-xs text-forest-500 mt-1">{{ number_format($aiUsage['today']['tokens']) }} Tokens &middot; {{ $aiUsage['today']['calls'] }} Aufrufe</p>
+            </div>
+            <div class="rounded-xl border border-sand-200 p-4">
+                <p class="text-xs text-forest-500">Dieser Monat</p>
+                <p class="text-2xl font-semibold text-forest-900 mt-1">${{ number_format($aiUsage['month']['cost'], 2) }}</p>
+                <p class="text-xs text-forest-500 mt-1">{{ number_format($aiUsage['month']['tokens']) }} Tokens &middot; {{ $aiUsage['month']['calls'] }} Aufrufe</p>
+            </div>
+        </div>
+        @if ($aiUsage['byFeature']->isNotEmpty())
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-xs text-forest-400 uppercase tracking-wide">
+                        <th class="pb-2">Funktion</th>
+                        <th class="pb-2 text-right">Aufrufe</th>
+                        <th class="pb-2 text-right">Tokens</th>
+                        <th class="pb-2 text-right">Kosten (geschätzt)</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-sand-100">
+                    @foreach ($aiUsage['byFeature'] as $row)
+                        <tr>
+                            <td class="py-2">{{ $featureLabels[$row->feature] ?? $row->feature }}</td>
+                            <td class="py-2 text-right">{{ $row->calls }}</td>
+                            <td class="py-2 text-right">{{ number_format($row->tokens ?? 0) }}</td>
+                            <td class="py-2 text-right">${{ number_format($row->cost ?? 0, 2) }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @else
+            <p class="text-sm text-forest-400">Diesen Monat noch keine KI-Aufrufe.</p>
+        @endif
+    </div>
+
     <div class="grid lg:grid-cols-2 gap-8">
         <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6">
             <h2 class="font-semibold text-forest-900 mb-4">Zuletzt bearbeitete Regionen</h2>

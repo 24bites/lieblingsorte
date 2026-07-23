@@ -71,13 +71,16 @@ class OpenAiRegionDrafter
         }
         JSON;
 
+        $model = config('services.openai.text_model', 'gpt-4o-mini');
+
         $response = Http::withToken($apiKey)
             ->timeout(180)
             ->retry(2, 1000)
             ->post('https://api.openai.com/v1/chat/completions', [
-                'model' => config('services.openai.text_model', 'gpt-4o-mini'),
+                'model' => $model,
                 'response_format' => ['type' => 'json_object'],
                 'temperature' => 0.7,
+                'max_tokens' => 4000,
                 'messages' => [
                     [
                         'role' => 'system',
@@ -110,6 +113,8 @@ class OpenAiRegionDrafter
             throw new RuntimeException('OpenAI-Antwort konnte nicht als gültiger Regions-Entwurf gelesen werden.');
         }
 
+        AiUsageTracker::recordChatUsage('region_draft', $model, $response->json('usage', []));
+
         return $data;
     }
 
@@ -129,13 +134,16 @@ class OpenAiRegionDrafter
 
         $avoidList = empty($avoidNames) ? 'keine' : implode(', ', $avoidNames);
 
+        $model = config('services.openai.text_model', 'gpt-4o-mini');
+
         $response = Http::withToken($apiKey)
             ->timeout(60)
             ->retry(2, 1000)
             ->post('https://api.openai.com/v1/chat/completions', [
-                'model' => config('services.openai.text_model', 'gpt-4o-mini'),
+                'model' => $model,
                 'response_format' => ['type' => 'json_object'],
                 'temperature' => 0.9,
+                'max_tokens' => 200,
                 'messages' => [
                     [
                         'role' => 'system',
@@ -162,6 +170,8 @@ class OpenAiRegionDrafter
         $content = $response->json('choices.0.message.content');
         $data = json_decode((string) $content, true);
         $name = is_array($data) ? trim((string) ($data['name'] ?? '')) : '';
+
+        AiUsageTracker::recordChatUsage('region_place_name', $model, $response->json('usage', []));
 
         return $name !== '' ? $name : null;
     }
@@ -211,13 +221,16 @@ class OpenAiRegionDrafter
         }
         JSON;
 
+        $model = config('services.openai.text_model', 'gpt-4o-mini');
+
         $response = Http::withToken($apiKey)
             ->timeout(120)
             ->retry(2, 1000)
             ->post('https://api.openai.com/v1/chat/completions', [
-                'model' => config('services.openai.text_model', 'gpt-4o-mini'),
+                'model' => $model,
                 'response_format' => ['type' => 'json_object'],
                 'temperature' => 0.8,
+                'max_tokens' => 1500,
                 'messages' => [
                     [
                         'role' => 'system',
@@ -250,6 +263,8 @@ class OpenAiRegionDrafter
         if (! is_array($data) || empty($data['title'])) {
             throw new RuntimeException('OpenAI-Antwort konnte nicht als gültiger Tipp-Entwurf gelesen werden.');
         }
+
+        AiUsageTracker::recordChatUsage('region_tip_draft', $model, $response->json('usage', []));
 
         return $data;
     }

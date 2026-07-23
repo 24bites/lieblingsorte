@@ -51,12 +51,15 @@ class OpenAiSocialCopywriter
         $title = $shareData['title'] ?? '';
         $description = $shareData['description'] ?? '';
 
+        $model = config('services.openai.text_model', 'gpt-4o-mini');
+
         $response = Http::withToken($apiKey)
             ->timeout(60)
             ->retry(2, 1000)
             ->post('https://api.openai.com/v1/chat/completions', [
-                'model' => config('services.openai.text_model', 'gpt-4o-mini'),
+                'model' => $model,
                 'temperature' => 0.9,
+                'max_tokens' => 300,
                 'messages' => [
                     [
                         'role' => 'system',
@@ -83,6 +86,8 @@ class OpenAiSocialCopywriter
         if ($caption === '') {
             throw new RuntimeException('OpenAI-Antwort enthielt keinen Text.');
         }
+
+        AiUsageTracker::recordChatUsage('social_caption', $model, $response->json('usage', []));
 
         return $caption;
     }

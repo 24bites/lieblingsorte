@@ -68,6 +68,7 @@ class AiFeatureTest extends TestCase
         $region->refresh();
         $this->assertNotNull($region->hero_image);
         $this->assertTrue($region->media()->first()->is_cover);
+        $this->assertDatabaseHas('ai_usage_logs', ['feature' => 'image', 'model' => 'gpt-image-1']);
     }
 
     public function test_ai_image_generation_failure_returns_validation_error_without_creating_media(): void
@@ -178,6 +179,7 @@ class AiFeatureTest extends TestCase
                 'choices' => [
                     ['message' => ['content' => json_encode($draft)]],
                 ],
+                'usage' => ['prompt_tokens' => 500, 'completion_tokens' => 800, 'total_tokens' => 1300],
             ], 200),
         ]);
 
@@ -193,6 +195,7 @@ class AiFeatureTest extends TestCase
         $this->assertSame(2, $region->travelTips()->count());
         $this->assertTrue($region->travelTips()->where('is_published', false)->exists());
         $this->assertDatabaseHas('travel_tips', ['title' => 'Festung Hohensalzburg', 'region_id' => $region->id]);
+        $this->assertDatabaseHas('ai_usage_logs', ['feature' => 'region_draft', 'total_tokens' => 1300]);
     }
 
     public function test_ai_region_generator_shows_error_when_openai_request_fails(): void

@@ -24,11 +24,13 @@ class OpenAiImageGenerator
             throw new RuntimeException('OPENAI_API_KEY ist nicht konfiguriert.');
         }
 
+        $model = config('services.openai.image_model', 'gpt-image-1');
+
         $response = Http::withToken($apiKey)
             ->timeout(120)
             ->retry(2, 500)
             ->post('https://api.openai.com/v1/images/generations', [
-                'model' => config('services.openai.image_model', 'gpt-image-1'),
+                'model' => $model,
                 'prompt' => $prompt,
                 'size' => $size,
                 'n' => 1,
@@ -51,6 +53,8 @@ class OpenAiImageGenerator
         if ($binary === false) {
             throw new RuntimeException('OpenAI-Bilddaten konnten nicht dekodiert werden.');
         }
+
+        AiUsageTracker::recordImageUsage('image', $model);
 
         return $binary;
     }

@@ -30,13 +30,15 @@ class OpenAiReportWriter
         }
 
         $contextLine = filled($context) ? "Zusätzlicher Kontext: {$context}\n" : '';
+        $model = config('services.openai.text_model', 'gpt-4o-mini');
 
         $response = Http::withToken($apiKey)
             ->timeout(120)
             ->retry(2, 1000)
             ->post('https://api.openai.com/v1/chat/completions', [
-                'model' => config('services.openai.text_model', 'gpt-4o-mini'),
+                'model' => $model,
                 'temperature' => 1.0,
+                'max_tokens' => 3000,
                 'messages' => [
                     [
                         'role' => 'system',
@@ -82,6 +84,8 @@ class OpenAiReportWriter
             throw new RuntimeException('OpenAI-Antwort enthielt keinen Text.');
         }
 
+        AiUsageTracker::recordChatUsage('report_write', $model, $response->json('usage', []));
+
         return $content;
     }
 
@@ -111,13 +115,16 @@ class OpenAiReportWriter
         }
         JSON;
 
+        $model = config('services.openai.text_model', 'gpt-4o-mini');
+
         $response = Http::withToken($apiKey)
             ->timeout(120)
             ->retry(2, 1000)
             ->post('https://api.openai.com/v1/chat/completions', [
-                'model' => config('services.openai.text_model', 'gpt-4o-mini'),
+                'model' => $model,
                 'response_format' => ['type' => 'json_object'],
                 'temperature' => 1.0,
+                'max_tokens' => 3000,
                 'messages' => [
                     [
                         'role' => 'system',
@@ -166,6 +173,8 @@ class OpenAiReportWriter
         if (! is_array($data) || empty($data['title']) || empty($data['content'])) {
             throw new RuntimeException('OpenAI-Antwort konnte nicht als gültiger Berichts-Entwurf gelesen werden.');
         }
+
+        AiUsageTracker::recordChatUsage('report_draft', $model, $response->json('usage', []));
 
         return $data;
     }
