@@ -4,6 +4,8 @@
     $seoTitle = $region->seo_title ?: $region->name.' Reisetipps | Lieblingsorte';
     $seoDescription = $region->seo_description ?: $region->short_description;
     $seoImage = $region->coverImage()?->url;
+    $ogType = 'article';
+    $articleModifiedTime = $region->updated_at->toAtomString();
 
     $jsonLd = [
         '@context' => 'https://schema.org',

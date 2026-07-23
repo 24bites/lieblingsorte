@@ -4,6 +4,10 @@
     $seoTitle = $report->seo_title ?: $report->title.' | '.\App\Models\Setting::get('site_name', 'Lieblingsorte');
     $seoDescription = $report->seo_description ?: $report->excerpt;
     $seoImage = $report->coverImage()?->url;
+    $ogType = 'article';
+    $articlePublishedTime = $report->published_at?->toAtomString();
+    $articleModifiedTime = $report->updated_at->toAtomString();
+    $articleAuthor = $report->author_name;
 
     $jsonLd = [
         '@context' => 'https://schema.org',

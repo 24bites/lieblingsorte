@@ -132,4 +132,14 @@
             return false;
         }
     };
+
+    window.hasMarketingConsent = function () {
+        try {
+            var raw = localStorage.getItem('cookie_consent');
+            var consent = raw ? JSON.parse(raw) : null;
+            return !!(consent && consent.marketing);
+        } catch (e) {
+            return false;
+        }
+    };
 </script>

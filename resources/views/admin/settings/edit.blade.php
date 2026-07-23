@@ -224,6 +224,21 @@
         </div>
 
         <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-5">
+            <h2 class="font-semibold text-forest-900">Pinterest-Tag</h2>
+            <p class="text-sm text-forest-500">
+                Leer lassen, um Tracking zu deaktivieren. Das Skript wird nur geladen, wenn Besucher der
+                Marketing-Kategorie im Cookie-Banner zustimmen.
+            </p>
+            <div>
+                <label class="block text-sm font-medium text-forest-800 mb-1">Pinterest-Tag-ID</label>
+                <input type="text" name="pinterest_tag_id" value="{{ old('pinterest_tag_id', $settings['pinterest_tag_id']) }}" placeholder="2612XXXXXXXX" class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm font-mono">
+                @error('pinterest_tag_id')
+                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-5">
             <h2 class="font-semibold text-forest-900">Werbeflächen</h2>
             <p class="text-sm text-forest-500">
                 Beliebiger HTML-/Script-Code (z. B. Google AdSense oder eine direkte Buchung) für die jeweilige Platzierung. Leere Felder zeigen keine Werbefläche an.

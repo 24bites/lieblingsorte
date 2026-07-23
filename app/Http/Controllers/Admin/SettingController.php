@@ -14,7 +14,7 @@ class SettingController extends Controller
 {
     private array $keys = [
         'site_name', 'site_claim', 'site_description', 'contact_email',
-        'ga_measurement_id', 'ad_slot_header', 'ad_slot_sidebar', 'ad_slot_in_content',
+        'ga_measurement_id', 'pinterest_tag_id', 'ad_slot_header', 'ad_slot_sidebar', 'ad_slot_in_content',
     ];
 
     public function edit()
@@ -68,6 +68,7 @@ class SettingController extends Controller
             'site_description' => ['required', 'string', 'max:500'],
             'contact_email' => ['required', 'email', 'max:255'],
             'ga_measurement_id' => ['nullable', 'string', 'max:32', 'regex:/^G-[A-Z0-9]+$/'],
+            'pinterest_tag_id' => ['nullable', 'string', 'max:32', 'regex:/^[0-9]+$/'],
             'ad_slot_header' => ['nullable', 'string', 'max:5000'],
             'ad_slot_sidebar' => ['nullable', 'string', 'max:5000'],
             'ad_slot_in_content' => ['nullable', 'string', 'max:5000'],

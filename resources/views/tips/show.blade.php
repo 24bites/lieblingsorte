@@ -5,6 +5,8 @@
     $seoDescription = $tip->seo_description ?: $tip->short_description;
     $seoImage = $tip->coverImage()?->url;
     $isFavorite = in_array($tip->id, $favoriteIds, true);
+    $ogType = 'article';
+    $articleModifiedTime = $tip->updated_at->toAtomString();
 
     $jsonLd = [
         '@context' => 'https://schema.org',

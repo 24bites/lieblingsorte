@@ -103,6 +103,45 @@
         </script>
     @endif
 
+    {{-- Pinterest Tag is an ad/conversion-tracking pixel, not analytics, so it's
+         gated behind marketing consent rather than the analytics category above. --}}
+    @php $pinterestTagId = \App\Models\Setting::get('pinterest_tag_id', ''); @endphp
+    @if ($pinterestTagId !== '')
+        <script>
+            (function () {
+                var tagId = @json($pinterestTagId);
+                var loaded = false;
+
+                function loadPinterestTag() {
+                    if (loaded || !window.hasMarketingConsent()) return;
+                    loaded = true;
+
+                    !function (e) {
+                        if (!window.pintrk) {
+                            window.pintrk = function () {
+                                window.pintrk.queue.push(Array.prototype.slice.call(arguments));
+                            };
+                            var n = window.pintrk;
+                            n.queue = [];
+                            n.version = '3.0';
+                            var t = document.createElement('script');
+                            t.async = true;
+                            t.src = e;
+                            var r = document.getElementsByTagName('script')[0];
+                            r.parentNode.insertBefore(t, r);
+                        }
+                    }('https://s.pinimg.com/ct/core.js');
+
+                    window.pintrk('load', tagId);
+                    window.pintrk('page');
+                }
+
+                document.addEventListener('DOMContentLoaded', loadPinterestTag);
+                window.addEventListener('cookie-consent-updated', loadPinterestTag);
+            })();
+        </script>
+    @endif
+
     @stack('scripts')
 </body>
 </html>
