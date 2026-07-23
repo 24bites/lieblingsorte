@@ -20,3 +20,9 @@ Schedule::command('regions:auto-generate')->cron("*/{$regionsInterval} * * * *")
 
 $completeContentInterval = AiCronSettings::intervalMinutes(AiCronSettings::REGIONS_COMPLETE_CONTENT);
 Schedule::command('regions:complete-content')->cron("*/{$completeContentInterval} * * * *")->withoutOverlapping();
+
+// Fixed daily cadence (not a configurable interval like the crons above) -
+// only feed-eligible items without a caption yet ever trigger an OpenAI
+// call, so daily is plenty to keep new content covered without live-per-
+// request cost. The enabled check lives inside the command itself.
+Schedule::command('social:pinterest-captions')->daily()->withoutOverlapping();

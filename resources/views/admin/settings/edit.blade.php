@@ -195,6 +195,18 @@
                     <p class="text-xs text-red-600">{{ $message }}</p>
                 @enderror
             </div>
+
+            <div class="rounded-xl border border-sand-200 p-4 space-y-3">
+                <label class="flex items-center gap-2 text-sm font-medium text-forest-800">
+                    <input type="checkbox" name="pinterest_captions_enabled" value="1" {{ old('pinterest_captions_enabled', $pinterestCaptionsEnabled) ? 'checked' : '' }} class="rounded text-forest-600">
+                    Pinterest-Beschreibungen automatisch per KI erzeugen (<code>social:pinterest-captions</code>, täglich)
+                </label>
+                <p class="text-xs text-forest-500">
+                    Erzeugt für neue Einträge im Pinterest-Feed (siehe Social Hub) einmal täglich eine Bild-Beschreibung
+                    mit Hashtags und Emoji, sofern noch keine vorhanden ist. Läuft nicht bei jedem Feed-Abruf, um
+                    KI-Kosten gering zu halten.
+                </p>
+            </div>
         </div>
 
         <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-5">

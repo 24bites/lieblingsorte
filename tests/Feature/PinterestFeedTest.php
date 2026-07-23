@@ -2,7 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\PinterestFeedFeature;
 use App\Models\Region;
+use App\Models\SocialPost;
+use App\Models\TravelTip;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -18,6 +21,15 @@ class PinterestFeedTest extends TestCase
         return Region::create(array_merge([
             'name' => 'Toskana', 'type' => 'Region', 'country' => 'Italien',
             'short_description' => 'Sonnige Hügel und Zypressenalleen', 'description' => 'Lang',
+            'is_published' => true,
+        ], $overrides));
+    }
+
+    private function tip(array $overrides = []): TravelTip
+    {
+        return TravelTip::create(array_merge([
+            'region_id' => $this->region(['name' => 'Toskana-'.uniqid()])->id,
+            'title' => 'Piazza del Campo', 'short_description' => 'Herzstück von Siena', 'description' => 'Lang',
             'is_published' => true,
         ], $overrides));
     }
@@ -145,6 +157,72 @@ class PinterestFeedTest extends TestCase
         $this->assertStringContainsString('Region 3', $xml);
         $this->assertStringNotContainsString('Region 2<', $xml);
         $this->assertStringNotContainsString('Region 1<', $xml);
+    }
+
+    public function test_feed_includes_travel_tips_alongside_regions(): void
+    {
+        $this->tip(['title' => 'Piazza del Campo']);
+
+        $xml = $this->get(route('pinterest-feed'))->getContent();
+
+        $this->assertStringContainsString('Piazza del Campo', $xml);
+    }
+
+    public function test_curated_items_appear_first_in_curated_order_regardless_of_recency(): void
+    {
+        $old = $this->region(['name' => 'Alt']);
+        $this->travel(1)->minutes();
+        $this->region(['name' => 'Neu']);
+
+        PinterestFeedFeature::create(['featurable_type' => Region::class, 'featurable_id' => $old->id, 'sort_order' => 0]);
+
+        $xml = $this->get(route('pinterest-feed'))->getContent();
+        $dom = new \DOMDocument();
+        $dom->loadXML($xml);
+        $titles = [];
+        foreach ($dom->getElementsByTagName('item') as $item) {
+            $titles[] = $item->getElementsByTagName('title')->item(0)->textContent;
+        }
+
+        $this->assertSame('Alt', $titles[0]);
+    }
+
+    public function test_existing_social_post_caption_is_used_as_the_description(): void
+    {
+        $region = $this->region();
+        $region->socialPosts()->create([
+            'platform' => 'pinterest', 'caption' => 'Eigens erzeugter Pinterest-Text mit #Hashtag 🌿',
+            'link_url' => 'https://24bites.de/toskana',
+        ]);
+
+        $xml = $this->get(route('pinterest-feed'))->getContent();
+
+        $this->assertStringContainsString('Eigens erzeugter Pinterest-Text mit #Hashtag 🌿', $xml);
+    }
+
+    public function test_fallback_description_includes_emoji_and_hashtag_when_no_social_post_exists(): void
+    {
+        $this->region();
+
+        $xml = $this->get(route('pinterest-feed'))->getContent();
+
+        $this->assertStringContainsString('📍', $xml);
+        $this->assertStringContainsString('#Reisetipps', $xml);
+    }
+
+    public function test_description_never_contains_an_embedded_image_tag(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('regions/toskana/toskana-1.jpg', 'fake-bytes');
+        $region = $this->region();
+        $region->media()->create([
+            'file_path' => 'regions/toskana/toskana-1.jpg', 'alt_text' => 'Toskana',
+            'sort_order' => 0, 'is_cover' => true,
+        ]);
+
+        $xml = $this->get(route('pinterest-feed'))->getContent();
+
+        $this->assertStringNotContainsString('<img', $xml);
     }
 
     public function test_social_hub_index_shows_the_feed_url(): void

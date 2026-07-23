@@ -11,12 +11,7 @@
             <link>{{ $region['link'] }}</link>
             <guid isPermaLink="true">{{ $region['link'] }}</guid>
             <pubDate>{{ $region['pubDate'] }}</pubDate>
-            <description><![CDATA[
-                {{ $region['description'] }}
-                @if ($region['image'])
-                    <br><img src="{{ $region['image']['url'] }}" alt="{{ $region['title'] }}">
-                @endif
-            ]]></description>
+            <description><![CDATA[{{ $region['description'] }}]]></description>
             @if ($region['image'])
                 <enclosure url="{{ $region['image']['url'] }}" type="{{ $region['image']['type'] }}" length="{{ $region['image']['length'] }}" />
             @endif

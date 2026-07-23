@@ -50,10 +50,13 @@ class SettingController extends Controller
             ],
         ];
 
+        $pinterestCaptionsEnabled = AiCronSettings::enabled(AiCronSettings::PINTEREST_CAPTIONS);
+
         return view('admin.settings.edit', compact(
             'settings', 'openaiKeyConfigured', 'openaiKeyPreview', 'aiCrons',
             'telegramConfigured', 'telegramTokenPreview', 'telegramChatId',
             'resendConfigured', 'resendKeyPreview', 'newsletterFooterVisible',
+            'pinterestCaptionsEnabled',
         ));
     }
 
@@ -82,6 +85,7 @@ class SettingController extends Controller
             'regions_auto_generate_interval' => ['required', 'integer', 'min:1', 'max:59'],
             'regions_complete_content_enabled' => ['nullable', 'boolean'],
             'regions_complete_content_interval' => ['required', 'integer', 'min:1', 'max:59'],
+            'pinterest_captions_enabled' => ['nullable', 'boolean'],
         ]);
 
         // A blank field means "leave unchanged" — the field is never pre-filled with the real secret,
@@ -115,6 +119,7 @@ class SettingController extends Controller
             $data['images_ai_replace_enabled'], $data['images_ai_replace_interval'],
             $data['regions_auto_generate_enabled'], $data['regions_auto_generate_interval'],
             $data['regions_complete_content_enabled'], $data['regions_complete_content_interval'],
+            $data['pinterest_captions_enabled'],
         );
 
         Setting::set('newsletter_footer_visible', $request->boolean('newsletter_footer_visible') ? '1' : '0');
@@ -125,6 +130,7 @@ class SettingController extends Controller
         AiCronSettings::setIntervalMinutes(AiCronSettings::REGIONS_AUTO_GENERATE, (int) $request->input('regions_auto_generate_interval'));
         AiCronSettings::setEnabled(AiCronSettings::REGIONS_COMPLETE_CONTENT, $request->boolean('regions_complete_content_enabled'));
         AiCronSettings::setIntervalMinutes(AiCronSettings::REGIONS_COMPLETE_CONTENT, (int) $request->input('regions_complete_content_interval'));
+        AiCronSettings::setEnabled(AiCronSettings::PINTEREST_CAPTIONS, $request->boolean('pinterest_captions_enabled'));
 
         foreach ($data as $key => $value) {
             Setting::set($key, $value ?? '');

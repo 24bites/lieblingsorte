@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LabelController as AdminLabelController;
 use App\Http\Controllers\Admin\MediaController as AdminMediaController;
+use App\Http\Controllers\Admin\PinterestFeedCurationController;
 use App\Http\Controllers\Admin\RegionController as AdminRegionController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
 use App\Http\Controllers\Admin\SocialHubController;
@@ -100,6 +101,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::get('social-hub', [SocialHubController::class, 'index'])->name('social-hub.index');
         Route::post('social-hub/generieren', [SocialHubController::class, 'generate'])->name('social-hub.generate');
+        Route::get('social-hub/pinterest-feed', [PinterestFeedCurationController::class, 'index'])->name('pinterest-feed-curation.index');
+        Route::post('social-hub/pinterest-feed', [PinterestFeedCurationController::class, 'store'])->name('pinterest-feed-curation.store');
+        Route::delete('social-hub/pinterest-feed/{feature}', [PinterestFeedCurationController::class, 'destroy'])->name('pinterest-feed-curation.destroy');
+        Route::patch('social-hub/pinterest-feed/{feature}/hoch', [PinterestFeedCurationController::class, 'moveUp'])->name('pinterest-feed-curation.up');
+        Route::patch('social-hub/pinterest-feed/{feature}/runter', [PinterestFeedCurationController::class, 'moveDown'])->name('pinterest-feed-curation.down');
         Route::get('social-hub/{socialPost}', [SocialHubController::class, 'show'])->name('social-hub.show');
         Route::put('social-hub/{socialPost}', [SocialHubController::class, 'update'])->name('social-hub.update');
         Route::post('social-hub/{socialPost}/senden', [SocialHubController::class, 'send'])->name('social-hub.send');

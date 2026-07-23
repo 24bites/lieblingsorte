@@ -33,7 +33,8 @@
     <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-3 mb-6" x-data="{ copied: false }">
         <h2 class="font-semibold text-forest-900">Pinterest-Feed (automatische Pins)</h2>
         <p class="text-sm text-forest-500">
-            RSS-Feed mit den 25 zuletzt aktualisierten veröffentlichten Regionen (Titel, Teaser und Titelbild).
+            RSS-Feed mit bis zu 25 veröffentlichten Regionen und Reisetipps (Titel, Beschreibung mit Hashtags/Emoji
+            und Titelbild) &ndash; manuell hervorgehobene Einträge zuerst, sonst die zuletzt aktualisierten.
             In Pinterest unter <span class="font-medium">Unternehmenskonto &rarr; Einstellungen &rarr; Content &rarr; RSS-Feeds</span>
             einmalig als Quelle hinterlegen &ndash; Pinterest holt neue Einträge dann automatisch ab und erstellt daraus Pins.
         </p>
@@ -46,6 +47,7 @@
                 <span x-show="copied" x-cloak>Kopiert ✓</span>
             </button>
             <a href="{{ route('pinterest-feed') }}" target="_blank" class="rounded-xl border border-sand-300 hover:bg-sand-100 text-forest-700 text-sm font-semibold px-4 py-2 whitespace-nowrap">Ansehen</a>
+            <a href="{{ route('admin.pinterest-feed-curation.index') }}" class="rounded-xl border border-sand-300 hover:bg-sand-100 text-forest-700 text-sm font-semibold px-4 py-2 whitespace-nowrap">Feed kuratieren</a>
         </div>
     </div>
 

@@ -17,8 +17,8 @@ class OpenAiSocialCopywriter
 {
     private const PLATFORM_BRIEFS = [
         'pinterest' => 'Schreibe eine Pinterest-Pin-Beschreibung: beschreibend und such-freundlich (Pinterest '
-            .'funktioniert wie eine visuelle Suchmaschine), 100-200 Zeichen, 2-3 thematisch passende Hashtags am '
-            .'Ende. Kein "Link in Bio" o. Ä., der Link wird separat hinterlegt.',
+            .'funktioniert wie eine visuelle Suchmaschine), 100-200 Zeichen, 1-2 passende Emojis, 2-3 thematisch '
+            .'passende Hashtags am Ende. Kein "Link in Bio" o. Ä., der Link wird separat hinterlegt.',
         'facebook' => 'Schreibe einen Facebook-Post: einladender, persönlicher Ton, 2-4 Sätze, endet mit einer '
             .'kurzen Handlungsaufforderung (z. B. zum Weiterlesen). Höchstens 1-2 Hashtags am Ende, sparsam '
             .'mit Emojis (maximal 1-2).',
