@@ -8,6 +8,7 @@ use App\Models\PinterestPin;
 use App\Models\Region;
 use App\Models\TravelTip;
 use App\Support\PinImageComposer;
+use App\Support\PinterestApiClient;
 use App\Support\PinterestConfig;
 use App\Support\PinterestPinWriter;
 use Illuminate\Http\Request;
@@ -147,7 +148,51 @@ class PinterestPinController extends Controller
             return back()->withErrors(['publish' => 'Pinterest ist noch nicht verbunden. Die Veröffentlichung folgt, sobald die Pinterest-App eingerichtet ist.']);
         }
 
-        abort(404);
+        if (! in_array($pin->status, ['approved', 'failed'], true)) {
+            return back()->withErrors(['publish' => 'Nur freigegebene Pins können veröffentlicht werden.']);
+        }
+
+        $accessToken = PinterestConfig::validAccessToken();
+
+        if (! $accessToken) {
+            return back()->withErrors(['publish' => 'Pinterest-Verbindung ist abgelaufen. Bitte in den Einstellungen erneut verbinden.']);
+        }
+
+        $pin->loadMissing(['board', 'featurable']);
+
+        try {
+            $board = $pin->board;
+
+            if (blank($board->pinterest_board_id)) {
+                $board->update([
+                    'pinterest_board_id' => PinterestApiClient::createBoard($accessToken, $board->name, $board->description),
+                ]);
+            }
+
+            $link = $pin->featurable->socialShareData()['url'];
+
+            $pinterestPinId = PinterestApiClient::createPin(
+                $accessToken,
+                $board->pinterest_board_id,
+                $pin->pin_title,
+                $pin->pin_description,
+                $link,
+                $pin->image_url,
+            );
+
+            $pin->update([
+                'status' => 'posted',
+                'posted_at' => now(),
+                'pinterest_pin_id' => $pinterestPinId,
+                'error_message' => null,
+            ]);
+        } catch (Throwable $e) {
+            $pin->update(['status' => 'failed', 'error_message' => $e->getMessage()]);
+
+            return back()->withErrors(['publish' => 'Veröffentlichung fehlgeschlagen: '.$e->getMessage()]);
+        }
+
+        return back()->with('status', 'Pin wurde auf Pinterest veröffentlicht.');
     }
 
     public function destroy(PinterestPin $pin)

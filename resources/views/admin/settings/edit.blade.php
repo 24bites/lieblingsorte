@@ -138,6 +138,69 @@
         </div>
 
         <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-5">
+            <h2 class="font-semibold text-forest-900">Pinterest-App (für Pin-Veröffentlichung)</h2>
+            <p class="text-sm text-forest-500">
+                App-ID und App-Secret stammen aus dem <a href="https://developers.pinterest.com/apps/" target="_blank" rel="noopener noreferrer" class="underline">Pinterest-Entwicklerportal</a>.
+                Die Weiterleitungs-URI dort muss exakt <code>{{ url('/admin/social-hub/pinterest/callback') }}</code> sein.
+                Das Secret wird aus Sicherheitsgründen nie wieder im Klartext angezeigt.
+            </p>
+            <div class="grid sm:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-sm font-medium text-forest-800 mb-1">App-ID</label>
+                    <input type="text" name="pinterest_app_id" value="{{ old('pinterest_app_id', $pinterestAppId) }}" placeholder="123456" class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm font-mono">
+                    @error('pinterest_app_id')
+                        <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-forest-800 mb-1">App-Secret</label>
+                    <input type="password" name="pinterest_app_secret" autocomplete="off" value="{{ old('pinterest_app_secret') }}"
+                        placeholder="{{ $pinterestAppConfigured ? 'Hinterlegt ('.$pinterestAppSecretPreview.') – zum Ändern neues Secret eingeben' : 'App-Secret' }}"
+                        class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm font-mono">
+                    @error('pinterest_app_secret')
+                        <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+            @if ($pinterestAppConfigured)
+                <label class="flex items-center gap-2 text-sm text-forest-700">
+                    <input type="checkbox" name="remove_pinterest_app" value="1" class="rounded text-forest-600">
+                    Hinterlegte Pinterest-App-Zugangsdaten entfernen (trennt auch eine bestehende Verbindung)
+                </label>
+            @endif
+
+            <div class="rounded-xl border border-sand-200 p-4 flex items-center justify-between gap-4 flex-wrap">
+                <div class="text-sm">
+                    @if ($pinterestConnected)
+                        <p class="font-medium text-forest-800">
+                            @if ($pinterestAccountUsername)
+                                Verbunden als <span class="font-mono">{{ $pinterestAccountUsername }}</span>
+                            @else
+                                Verbunden
+                            @endif
+                        </p>
+                        <p class="text-forest-500">Pins können jetzt über den Social Hub veröffentlicht werden.</p>
+                    @elseif ($pinterestAppConfigured)
+                        <p class="font-medium text-forest-800">Noch nicht verbunden</p>
+                        <p class="text-forest-500">App-Zugangsdaten sind hinterlegt &ndash; jetzt die Verbindung herstellen.</p>
+                    @else
+                        <p class="text-forest-500">Erst App-ID und App-Secret speichern, dann verbinden.</p>
+                    @endif
+                </div>
+                <div class="flex gap-2">
+                    @if ($pinterestConnected)
+                        <form action="{{ route('admin.pinterest.disconnect') }}" method="POST" onsubmit="return confirm('Pinterest-Verbindung wirklich trennen?')">
+                            @csrf
+                            <button type="submit" class="rounded-xl bg-white ring-1 ring-red-200 text-red-600 hover:bg-red-50 text-sm font-semibold px-4 py-2">Trennen</button>
+                        </form>
+                    @elseif ($pinterestAppConfigured)
+                        <a href="{{ route('admin.pinterest.connect') }}" class="rounded-xl bg-forest-700 hover:bg-forest-800 text-white text-sm font-semibold px-4 py-2">Mit Pinterest verbinden</a>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-5">
             <h2 class="font-semibold text-forest-900">KI-Crons</h2>
             <p class="text-sm text-forest-500">
                 Steuert die automatischen Hintergrundaufgaben einzeln. Änderungen wirken beim nächsten

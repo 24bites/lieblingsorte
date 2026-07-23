@@ -26,3 +26,7 @@ Schedule::command('regions:complete-content')->cron("*/{$completeContentInterval
 // call, so daily is plenty to keep new content covered without live-per-
 // request cost. The enabled check lives inside the command itself.
 Schedule::command('social:pinterest-captions')->daily()->withoutOverlapping();
+
+// Access tokens last ~30 days; a daily check refreshes well ahead of expiry.
+// No-ops entirely while Pinterest isn't connected - see the command itself.
+Schedule::command('pinterest:refresh-token')->daily()->withoutOverlapping();

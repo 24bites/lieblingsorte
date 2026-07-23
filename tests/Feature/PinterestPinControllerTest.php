@@ -6,6 +6,7 @@ use App\Models\PinterestBoard;
 use App\Models\PinterestPin;
 use App\Models\Region;
 use App\Models\User;
+use App\Support\PinterestConfig;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
@@ -146,6 +147,81 @@ class PinterestPinControllerTest extends TestCase
 
         $response->assertSessionHasErrors('publish');
         $this->assertSame('approved', $pin->fresh()->status);
+    }
+
+    private function connectPinterest(): void
+    {
+        PinterestConfig::storeAppCredentials('app-id', 'app-secret');
+        PinterestConfig::storeTokens('access-token', 'refresh-token', 2592000);
+    }
+
+    public function test_publish_creates_a_board_and_pin_via_the_api_and_marks_it_posted(): void
+    {
+        $this->connectPinterest();
+        $region = $this->region();
+        $board = PinterestBoard::create(['type' => 'topic', 'name' => 'Geheimtipps Europa', 'description' => 'x']);
+        $pin = PinterestPin::create([
+            'featurable_type' => Region::class, 'featurable_id' => $region->id,
+            'board_id' => $board->id, 'variant_label' => 'allgemein', 'status' => 'approved',
+            'pin_title' => 'Titel', 'pin_description' => 'Beschreibung',
+            'generated_image_path' => 'pins/test/image.jpg',
+        ]);
+
+        Http::fake([
+            'api.pinterest.com/v5/boards' => Http::response(['id' => 'board-999']),
+            'api.pinterest.com/v5/pins' => Http::response(['id' => 'pin-123']),
+        ]);
+
+        $response = $this->actingAs($this->admin())->post(route('admin.pinterest-pins.publish', $pin));
+
+        $response->assertRedirect();
+        $response->assertSessionDoesntHaveErrors();
+        $this->assertSame('posted', $pin->fresh()->status);
+        $this->assertSame('pin-123', $pin->fresh()->pinterest_pin_id);
+        $this->assertSame('board-999', $board->fresh()->pinterest_board_id);
+        $this->assertNotNull($pin->fresh()->posted_at);
+    }
+
+    public function test_publish_marks_pin_as_failed_when_the_api_call_fails(): void
+    {
+        $this->connectPinterest();
+        $region = $this->region();
+        $board = PinterestBoard::create(['type' => 'topic', 'name' => 'Geheimtipps Europa', 'pinterest_board_id' => 'board-999']);
+        $pin = PinterestPin::create([
+            'featurable_type' => Region::class, 'featurable_id' => $region->id,
+            'board_id' => $board->id, 'variant_label' => 'allgemein', 'status' => 'approved',
+            'pin_title' => 'Titel', 'pin_description' => 'Beschreibung',
+            'generated_image_path' => 'pins/test/image.jpg',
+        ]);
+
+        Http::fake(['api.pinterest.com/v5/pins' => Http::response(['message' => 'insufficient scope'], 403)]);
+
+        $response = $this->actingAs($this->admin())->post(route('admin.pinterest-pins.publish', $pin));
+
+        $response->assertSessionHasErrors('publish');
+        $this->assertSame('failed', $pin->fresh()->status);
+        $this->assertNotNull($pin->fresh()->error_message);
+    }
+
+    public function test_failed_pin_can_be_retried(): void
+    {
+        $this->connectPinterest();
+        $region = $this->region();
+        $board = PinterestBoard::create(['type' => 'topic', 'name' => 'Geheimtipps Europa', 'pinterest_board_id' => 'board-999']);
+        $pin = PinterestPin::create([
+            'featurable_type' => Region::class, 'featurable_id' => $region->id,
+            'board_id' => $board->id, 'variant_label' => 'allgemein', 'status' => 'failed',
+            'pin_title' => 'Titel', 'pin_description' => 'Beschreibung',
+            'generated_image_path' => 'pins/test/image.jpg', 'error_message' => 'vorheriger Fehler',
+        ]);
+
+        Http::fake(['api.pinterest.com/v5/pins' => Http::response(['id' => 'pin-123'])]);
+
+        $response = $this->actingAs($this->admin())->post(route('admin.pinterest-pins.publish', $pin));
+
+        $response->assertSessionDoesntHaveErrors();
+        $this->assertSame('posted', $pin->fresh()->status);
+        $this->assertNull($pin->fresh()->error_message);
     }
 
     public function test_admin_can_update_pin_title_and_description(): void

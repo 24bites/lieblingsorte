@@ -28,6 +28,11 @@
     @error('publish')
         <div class="bg-red-50 ring-1 ring-red-200 text-red-800 rounded-2xl p-4 mb-6 text-sm">{{ $message }}</div>
     @enderror
+    @if ($pin->status === 'failed' && $pin->error_message)
+        <div class="bg-red-50 ring-1 ring-red-200 text-red-800 rounded-2xl p-4 mb-6 text-sm">
+            Letzter Veröffentlichungsversuch fehlgeschlagen: {{ $pin->error_message }}
+        </div>
+    @endif
 
     <div class="grid lg:grid-cols-[320px,1fr] gap-8">
         <div>
@@ -70,17 +75,20 @@
                         <button type="submit" class="rounded-xl bg-forest-700 hover:bg-forest-800 text-white text-sm font-semibold px-4 py-2">Freigeben</button>
                     </form>
                 @endif
-                @if ($pin->status === 'approved')
+                @if (in_array($pin->status, ['approved', 'failed']))
                     <form action="{{ route('admin.pinterest-pins.publish', $pin) }}" method="POST">
                         @csrf
                         <button type="submit" {{ $pinterestConfigured ? '' : 'disabled' }}
                             class="rounded-xl bg-forest-700 hover:bg-forest-800 text-white text-sm font-semibold px-4 py-2 disabled:opacity-40 disabled:cursor-not-allowed">
-                            Veröffentlichen
+                            {{ $pin->status === 'failed' ? 'Erneut versuchen' : 'Veröffentlichen' }}
                         </button>
                     </form>
                     @unless ($pinterestConfigured)
                         <p class="text-xs text-forest-400 self-center">Pinterest ist noch nicht verbunden.</p>
                     @endunless
+                @endif
+                @if ($pin->status === 'posted' && $pin->pinterest_pin_id)
+                    <p class="text-sm text-forest-500 self-center">Pinterest-Pin-ID: {{ $pin->pinterest_pin_id }}</p>
                 @endif
                 <form action="{{ route('admin.pinterest-pins.destroy', $pin) }}" method="POST" onsubmit="return confirm('Pin wirklich löschen?')">
                     @csrf @method('DELETE')

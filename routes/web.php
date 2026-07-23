@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\LabelController as AdminLabelController;
 use App\Http\Controllers\Admin\MediaController as AdminMediaController;
 use App\Http\Controllers\Admin\PinterestBoardController;
 use App\Http\Controllers\Admin\PinterestFeedCurationController;
+use App\Http\Controllers\Admin\PinterestOAuthController;
 use App\Http\Controllers\Admin\PinterestPinController;
 use App\Http\Controllers\Admin\RegionController as AdminRegionController;
 use App\Http\Controllers\Admin\SettingController as AdminSettingController;
@@ -119,6 +120,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('social-hub/pinterest-pins/{pin}/freigeben', [PinterestPinController::class, 'approve'])->name('pinterest-pins.approve');
         Route::post('social-hub/pinterest-pins/{pin}/veroeffentlichen', [PinterestPinController::class, 'publish'])->name('pinterest-pins.publish');
         Route::delete('social-hub/pinterest-pins/{pin}', [PinterestPinController::class, 'destroy'])->name('pinterest-pins.destroy');
+        Route::get('social-hub/pinterest/connect', [PinterestOAuthController::class, 'connect'])->name('pinterest.connect');
+        Route::get('social-hub/pinterest/callback', [PinterestOAuthController::class, 'callback'])->name('pinterest.callback');
+        Route::post('social-hub/pinterest/disconnect', [PinterestOAuthController::class, 'disconnect'])->name('pinterest.disconnect');
         Route::get('social-hub/{socialPost}', [SocialHubController::class, 'show'])->name('social-hub.show');
         Route::put('social-hub/{socialPost}', [SocialHubController::class, 'update'])->name('social-hub.update');
         Route::post('social-hub/{socialPost}/senden', [SocialHubController::class, 'send'])->name('social-hub.send');

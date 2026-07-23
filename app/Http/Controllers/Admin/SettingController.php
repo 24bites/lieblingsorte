@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Support\AiCronSettings;
 use App\Support\OpenAiConfig;
+use App\Support\PinterestConfig;
 use App\Support\ResendConfig;
 use App\Support\TelegramConfig;
 use Illuminate\Http\Request;
@@ -52,11 +53,19 @@ class SettingController extends Controller
 
         $pinterestCaptionsEnabled = AiCronSettings::enabled(AiCronSettings::PINTEREST_CAPTIONS);
 
+        $pinterestAppId = PinterestConfig::appId();
+        $pinterestAppConfigured = PinterestConfig::hasAppCredentials();
+        $pinterestAppSecretPreview = PinterestConfig::appSecretPreview();
+        $pinterestConnected = PinterestConfig::isConfigured();
+        $pinterestAccountUsername = PinterestConfig::accountUsername();
+
         return view('admin.settings.edit', compact(
             'settings', 'openaiKeyConfigured', 'openaiKeyPreview', 'aiCrons',
             'telegramConfigured', 'telegramTokenPreview', 'telegramChatId',
             'resendConfigured', 'resendKeyPreview', 'newsletterFooterVisible',
             'pinterestCaptionsEnabled',
+            'pinterestAppId', 'pinterestAppConfigured', 'pinterestAppSecretPreview',
+            'pinterestConnected', 'pinterestAccountUsername',
         ));
     }
 
@@ -79,6 +88,9 @@ class SettingController extends Controller
             'remove_telegram' => ['nullable', 'boolean'],
             'resend_api_key' => ['nullable', 'string', 'max:255'],
             'remove_resend_api_key' => ['nullable', 'boolean'],
+            'pinterest_app_id' => ['nullable', 'string', 'max:255'],
+            'pinterest_app_secret' => ['nullable', 'string', 'max:255'],
+            'remove_pinterest_app' => ['nullable', 'boolean'],
             'newsletter_footer_visible' => ['nullable', 'boolean'],
             'images_ai_replace_enabled' => ['nullable', 'boolean'],
             'images_ai_replace_interval' => ['required', 'integer', 'min:1', 'max:59'],
@@ -112,10 +124,17 @@ class SettingController extends Controller
             ResendConfig::store(trim($data['resend_api_key']));
         }
 
+        if ($request->boolean('remove_pinterest_app')) {
+            PinterestConfig::clearAppCredentials();
+        } elseif (filled($data['pinterest_app_id'] ?? null) && filled($data['pinterest_app_secret'] ?? null)) {
+            PinterestConfig::storeAppCredentials(trim($data['pinterest_app_id']), trim($data['pinterest_app_secret']));
+        }
+
         unset(
             $data['openai_api_key'], $data['remove_openai_api_key'],
             $data['telegram_bot_token'], $data['telegram_chat_id'], $data['remove_telegram'],
             $data['resend_api_key'], $data['remove_resend_api_key'],
+            $data['pinterest_app_id'], $data['pinterest_app_secret'], $data['remove_pinterest_app'],
             $data['newsletter_footer_visible'],
             $data['images_ai_replace_enabled'], $data['images_ai_replace_interval'],
             $data['regions_auto_generate_enabled'], $data['regions_auto_generate_interval'],
