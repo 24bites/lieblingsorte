@@ -36,6 +36,7 @@
             <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
                 <a href="{{ route('legal.impressum') }}" class="hover:text-white">Impressum</a>
                 <a href="{{ route('legal.datenschutz') }}" class="hover:text-white">Datenschutz</a>
+                <a href="{{ route('feed') }}" class="hover:text-white">RSS-Feed</a>
                 <button type="button" onclick="window.dispatchEvent(new CustomEvent('open-cookie-settings'))" class="hover:text-white underline decoration-dotted">Cookie-Einstellungen</button>
             </div>
         </div>

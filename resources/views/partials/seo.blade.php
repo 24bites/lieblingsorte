@@ -9,6 +9,7 @@
 <title>{{ $seoTitle }}</title>
 <meta name="description" content="{{ \Illuminate\Support\Str::limit($seoDescription, 160) }}">
 <link rel="canonical" href="{{ $canonicalUrl }}">
+<link rel="alternate" type="application/rss+xml" title="{{ \App\Models\Setting::get('site_name', 'Lieblingsorte') }} – Neueste Beiträge" href="{{ route('feed') }}">
 
 {{-- og:type=article + article:* tags are what Pinterest's Rich Pins reads for the
      "Article" rich pin format - without these it falls back to a bare link preview. --}}
