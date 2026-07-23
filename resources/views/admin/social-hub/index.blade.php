@@ -51,6 +51,18 @@
         </div>
     </div>
 
+    <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-3 mb-6">
+        <h2 class="font-semibold text-forest-900">Pinterest-Pins (Text-Overlay, mehrere Boards)</h2>
+        <p class="text-sm text-forest-500">
+            Boards verwalten und einzelne Pins mit Text-Overlay-Bild, Keyword-Titel und -Beschreibung vorbereiten.
+            Veröffentlichung auf Pinterest erfolgt erst nach Freigabe, sobald die Pinterest-App verbunden ist.
+        </p>
+        <div class="flex gap-2">
+            <a href="{{ route('admin.pinterest-boards.index') }}" class="rounded-xl border border-sand-300 hover:bg-sand-100 text-forest-700 text-sm font-semibold px-4 py-2 whitespace-nowrap">Boards verwalten</a>
+            <a href="{{ route('admin.pinterest-pins.index') }}" class="rounded-xl bg-forest-700 hover:bg-forest-800 text-white text-sm font-semibold px-4 py-2 whitespace-nowrap">Pin-Warteschlange</a>
+        </div>
+    </div>
+
     <div class="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div class="flex gap-2">
             @foreach ($typeLabels as $key => $label)
