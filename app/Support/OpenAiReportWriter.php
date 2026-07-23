@@ -6,13 +6,10 @@ use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
 /**
- * Writes a full travel report body via OpenAI's chat completions endpoint.
- * Unlike OpenAiRegionDrafter (structured facts as JSON), this is prose: a
- * personal, first-person account meant to read like a real travel blog
- * entry, not "AI writing". The system prompt spells out concrete anti-tells
- * (stock openers, bullet-heavy structure, repetitive sentence shapes,
- * meta-commentary) rather than just saying "sound human", since that
- * generic instruction alone tends not to change the output much.
+ * Writes full travel-guide reports via OpenAI's chat completions endpoint,
+ * following the shared style guide in ReportWriterPrompt. Content is
+ * returned as HTML (h2/h3/p/ul/table) - the admin edits it in a WYSIWYG
+ * editor and the public page renders it directly.
  */
 class OpenAiReportWriter
 {
@@ -21,6 +18,10 @@ class OpenAiReportWriter
         return OpenAiConfig::isConfigured();
     }
 
+    /**
+     * Regenerates just the body content of an existing report (title/SEO
+     * fields stay untouched) - used by the "Text neu generieren" action.
+     */
     public static function write(string $topic, ?string $context = null): string
     {
         $apiKey = OpenAiConfig::apiKey();
@@ -33,41 +34,19 @@ class OpenAiReportWriter
         $model = config('services.openai.text_model', 'gpt-4o-mini');
 
         $response = Http::withToken($apiKey)
-            ->timeout(120)
+            ->timeout(180)
             ->retry(2, 1000)
             ->post('https://api.openai.com/v1/chat/completions', [
                 'model' => $model,
-                'temperature' => 1.0,
-                'max_tokens' => 3000,
+                'temperature' => 0.7,
+                'max_tokens' => 8000,
                 'messages' => [
-                    [
-                        'role' => 'system',
-                        'content' => <<<'PROMPT'
-                        Du schreibst persönliche, sehr menschlich klingende Reiseberichte auf Deutsch für ein
-                        Reiseportal. Du erzählst aus der Ich-Perspektive, mit konkreten, sinnlichen Details
-                        (Geräusche, Gerüche, Wetter, kleine Beobachtungen, ein Gespräch, ein Missgeschick),
-                        unterschiedlich langen Sätzen und einem natürlichen, leicht unperfekten Rhythmus - wie ein
-                        guter persönlicher Reiseblog, nicht wie ein Prospekt oder eine Pressemitteilung.
-
-                        Vermeide unbedingt typische Merkmale von KI-generiertem Text:
-                        - keine Einleitungsfloskeln wie "Tauchen wir ein", "Begleite mich" oder "Stell dir vor"
-                        - kein "Fazit:" oder abschließenden Absatz mit Ratschlägen/Zusammenfassung an die Leserschaft
-                        - keine Aufzählungen mit Bulletpoints oder nummerierten Listen
-                        - keine sich wiederholenden Satzanfänge (nicht durchgehend "Zunächst... Danach... Schließlich...")
-                        - keine Häufung von Superlativen wie "atemberaubend", "unvergesslich", "einzigartig", "magisch"
-                        - keine Gedankenstrich-Aufzählungen oder abgehackte Schlagwort-Sätze im Werbe-Stil
-                        - keine Meta-Kommentare über das Schreiben selbst oder direkte Anrede der Leserschaft am Ende
-                        - keine erfundenen exakten Preise, Öffnungszeiten oder Namen von Personen/Betrieben
-
-                        Struktur: Gliedere den Text in 2 bis 4 Abschnitte. Jeder Abschnitt beginnt mit einer kurzen,
-                        konkreten Zwischenüberschrift auf einer eigenen Zeile im Format "## Überschrift" (ohne
-                        Anführungszeichen). Trenne alle Absätze durch eine Leerzeile. Antworte ausschließlich mit dem
-                        Fließtext des Berichts (kein Titel, keine Meta-Erklärung), Länge ca. 500-800 Wörter.
-                        PROMPT,
-                    ],
+                    ['role' => 'system', 'content' => ReportWriterPrompt::systemPrompt()],
                     [
                         'role' => 'user',
-                        'content' => "Schreibe einen Reisebericht zum Thema \"{$topic}\".\n{$contextLine}",
+                        'content' => "Schreibe den vollständigen Reiseführer-Artikel zum Thema \"{$topic}\".\n{$contextLine}"
+                            .'Antworte ausschließlich mit dem fertigen HTML-Inhalt des Artikels (das "content"-Feld '
+                            .'aus dem Schema), ohne Titel, ohne JSON, ohne Erklärung.',
                     ],
                 ],
             ]);
@@ -79,6 +58,7 @@ class OpenAiReportWriter
         }
 
         $content = trim((string) $response->json('choices.0.message.content'));
+        $content = ReportWriterPrompt::stripCodeFence($content);
 
         if ($content === '') {
             throw new RuntimeException('OpenAI-Antwort enthielt keinen Text.');
@@ -90,9 +70,10 @@ class OpenAiReportWriter
     }
 
     /**
-     * Drafts a full report - title, teaser, body, and SEO fields - from just
-     * a topic, for the "Neuer Reisebericht erstellen" page. Author identity
-     * is deliberately left out of the draft (see TravelReportController):
+     * Drafts a full report - title, teaser, HTML body, SEO/OG fields, FAQ,
+     * plus image and internal-link suggestions for the editor to act on -
+     * from just a topic, for the "Neuer Reisebericht erstellen" page. Author
+     * identity is deliberately left out of the draft (see TravelReportController):
      * that stays a human choice, not something to fabricate.
      */
     public static function draft(string $topic, ?string $context = null): array
@@ -104,58 +85,22 @@ class OpenAiReportWriter
         }
 
         $contextLine = filled($context) ? "Zusätzlicher Kontext: {$context}\n" : '';
-
-        $schema = <<<'JSON'
-        {
-          "title": "string, prägnanter Titel des Reiseberichts",
-          "excerpt": "Teaser/Kurzbeschreibung, max. 200 Zeichen",
-          "content": "der vollständige Reisebericht-Fließtext, siehe Stil- und Strukturvorgaben oben",
-          "seo_title": "string oder null",
-          "seo_description": "max. 160 Zeichen oder null"
-        }
-        JSON;
-
+        $schema = ReportWriterPrompt::jsonSchema();
         $model = config('services.openai.text_model', 'gpt-4o-mini');
 
         $response = Http::withToken($apiKey)
-            ->timeout(120)
+            ->timeout(180)
             ->retry(2, 1000)
             ->post('https://api.openai.com/v1/chat/completions', [
                 'model' => $model,
                 'response_format' => ['type' => 'json_object'],
-                'temperature' => 1.0,
-                'max_tokens' => 3000,
+                'temperature' => 0.7,
+                'max_tokens' => 8000,
                 'messages' => [
-                    [
-                        'role' => 'system',
-                        'content' => <<<'PROMPT'
-                        Du schreibst persönliche, sehr menschlich klingende Reiseberichte auf Deutsch für ein
-                        Reiseportal. Du erzählst aus der Ich-Perspektive, mit konkreten, sinnlichen Details
-                        (Geräusche, Gerüche, Wetter, kleine Beobachtungen, ein Gespräch, ein Missgeschick),
-                        unterschiedlich langen Sätzen und einem natürlichen, leicht unperfekten Rhythmus - wie ein
-                        guter persönlicher Reiseblog, nicht wie ein Prospekt oder eine Pressemitteilung.
-
-                        Vermeide unbedingt typische Merkmale von KI-generiertem Text:
-                        - keine Einleitungsfloskeln wie "Tauchen wir ein", "Begleite mich" oder "Stell dir vor"
-                        - kein "Fazit:" oder abschließenden Absatz mit Ratschlägen/Zusammenfassung an die Leserschaft
-                        - keine Aufzählungen mit Bulletpoints oder nummerierten Listen
-                        - keine sich wiederholenden Satzanfänge (nicht durchgehend "Zunächst... Danach... Schließlich...")
-                        - keine Häufung von Superlativen wie "atemberaubend", "unvergesslich", "einzigartig", "magisch"
-                        - keine Gedankenstrich-Aufzählungen oder abgehackte Schlagwort-Sätze im Werbe-Stil
-                        - keine Meta-Kommentare über das Schreiben selbst oder direkte Anrede der Leserschaft am Ende
-                        - keine erfundenen exakten Preise, Öffnungszeiten oder Namen von Personen/Betrieben
-
-                        Struktur des "content"-Feldes: Gliedere den Text in 2 bis 4 Abschnitte. Jeder Abschnitt
-                        beginnt mit einer kurzen, konkreten Zwischenüberschrift auf einer eigenen Zeile im Format
-                        "## Überschrift" (ohne Anführungszeichen). Trenne alle Absätze durch eine Leerzeile. Länge
-                        ca. 500-800 Wörter.
-
-                        Antworte ausschließlich mit einem JSON-Objekt exakt nach dem vorgegebenen Schema.
-                        PROMPT,
-                    ],
+                    ['role' => 'system', 'content' => ReportWriterPrompt::systemPrompt()],
                     [
                         'role' => 'user',
-                        'content' => "Entwirf einen Reisebericht zum Thema \"{$topic}\".\n{$contextLine}"
+                        'content' => "Entwirf den vollständigen Reiseführer-Artikel zum Thema \"{$topic}\".\n{$contextLine}"
                             ."Antworte ausschließlich mit einem JSON-Objekt exakt nach folgendem Schema "
                             ."(Werte sind Beispiele für den Typ, keine Vorgabe für den Inhalt):\n{$schema}",
                     ],

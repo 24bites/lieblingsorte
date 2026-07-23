@@ -66,6 +66,47 @@
         </div>
 
         <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-5">
+            <h2 class="font-semibold text-forest-900">KI-Anbieter für Reiseberichte</h2>
+            <p class="text-sm text-forest-500">
+                Reiseberichte können wahlweise mit OpenAI oder mit Claude (Anthropic) geschrieben werden &ndash;
+                beide nutzen denselben Stil-Prompt, nur Kosten und Ausgabequalität unterscheiden sich. Alle
+                anderen KI-Funktionen (Bildgenerierung, Regionsgenerator, Social-Hub-Texte) nutzen weiterhin OpenAI.
+            </p>
+            <div>
+                <label class="block text-sm font-medium text-forest-800 mb-1">Anbieter</label>
+                <select name="report_ai_provider" class="w-full sm:w-64 rounded-xl border border-sand-300 px-4 py-2.5 text-sm">
+                    <option value="openai" @selected(old('report_ai_provider', $reportAiProvider) === 'openai')>OpenAI</option>
+                    <option value="claude" @selected(old('report_ai_provider', $reportAiProvider) === 'claude')>Claude (Anthropic)</option>
+                </select>
+                @error('report_ai_provider')
+                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                @enderror
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-forest-800 mb-1">Anthropic API-Key</label>
+                <input type="password" name="anthropic_api_key" autocomplete="off" value="{{ old('anthropic_api_key') }}"
+                    placeholder="{{ $anthropicConfigured ? 'Hinterlegt ('.$anthropicKeyPreview.') – zum Ändern neuen Key eingeben' : 'sk-ant-...' }}"
+                    class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm font-mono">
+                @error('anthropic_api_key')
+                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                @enderror
+                <p class="text-xs text-forest-500 mt-1">
+                    @if ($anthropicConfigured)
+                        Aktuell hinterlegt: <span class="font-mono">{{ $anthropicKeyPreview }}</span>.
+                    @else
+                        Aktuell nicht hinterlegt &ndash; erforderlich, um Claude als Anbieter zu nutzen.
+                    @endif
+                </p>
+                @if ($anthropicConfigured)
+                    <label class="flex items-center gap-2 text-sm text-forest-700 mt-2">
+                        <input type="checkbox" name="remove_anthropic_api_key" value="1" class="rounded text-forest-600">
+                        Hinterlegten Key entfernen
+                    </label>
+                @endif
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-5">
             <h2 class="font-semibold text-forest-900">Telegram (für Social Hub)</h2>
             <p class="text-sm text-forest-500">
                 Damit der Social Hub Beiträge direkt an einen Telegram-Kanal/Chat senden kann (statt nur einen

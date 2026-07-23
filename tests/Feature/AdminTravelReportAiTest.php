@@ -104,9 +104,13 @@ class AdminTravelReportAiTest extends TestCase
         $draft = array_merge([
             'title' => 'Ein Wochenende auf Föhr im Winter',
             'excerpt' => 'Kurzer Teaser',
-            'content' => "Ein Absatz.\n\n## Zwischenüberschrift\n\nEin weiterer Absatz.",
+            'content' => '<p>Ein Absatz.</p><h2>Zwischenüberschrift</h2><p>Ein weiterer Absatz.</p>',
             'seo_title' => 'SEO-Titel',
             'seo_description' => 'SEO-Beschreibung',
+            'og_description' => 'OG-Beschreibung',
+            'faq' => [['question' => 'Wie kommt man hin?', 'answer' => 'Mit der Fähre ab Dagebüll.']],
+            'image_suggestions' => ['Fähre bei Sonnenuntergang', 'Wattwanderung mit Gruppe'],
+            'internal_link_suggestions' => ['Reisetipp: Wattwandern auf Föhr'],
         ], $overrides);
 
         Http::fake([
@@ -135,9 +139,32 @@ class AdminTravelReportAiTest extends TestCase
         $this->assertSame('Kurzer Teaser', $report->excerpt);
         $this->assertStringContainsString('Zwischenüberschrift', $report->content);
         $this->assertSame('SEO-Titel', $report->seo_title);
+        $this->assertSame('OG-Beschreibung', $report->og_description);
+        $this->assertSame('Wie kommt man hin?', $report->faq[0]['question']);
         $this->assertFalse($report->is_published);
         $this->assertTrue($report->ai_generated);
         $this->assertDatabaseHas('ai_usage_logs', ['feature' => 'report_draft', 'total_tokens' => 800]);
+        $this->assertEquals(['Fähre bei Sonnenuntergang', 'Wattwanderung mit Gruppe'], session('imageSuggestions'));
+        $this->assertEquals(['Reisetipp: Wattwandern auf Föhr'], session('internalLinkSuggestions'));
+    }
+
+    public function test_draft_with_incomplete_faq_pairs_filters_them_out(): void
+    {
+        $this->fakeApiKey();
+        $this->fakeDraftResponse([
+            'faq' => [
+                ['question' => 'Vollständig?', 'answer' => 'Ja.'],
+                ['question' => 'Nur Frage ohne Antwort', 'answer' => ''],
+            ],
+        ]);
+
+        $this->actingAs($this->admin())->post(route('admin.reports.ai-draft'), [
+            'ai_topic' => 'Ein Wochenende auf Föhr im Winter',
+        ]);
+
+        $report = TravelReport::first();
+        $this->assertCount(1, $report->faq);
+        $this->assertSame('Vollständig?', $report->faq[0]['question']);
     }
 
     public function test_draft_defaults_author_name_to_the_logged_in_admin(): void

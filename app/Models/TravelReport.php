@@ -24,6 +24,8 @@ class TravelReport extends Model
         'region_id',
         'seo_title',
         'seo_description',
+        'og_description',
+        'faq',
         'is_published',
         'ai_generated',
         'published_at',
@@ -32,6 +34,7 @@ class TravelReport extends Model
     protected function casts(): array
     {
         return [
+            'faq' => 'array',
             'is_published' => 'boolean',
             'ai_generated' => 'boolean',
             'published_at' => 'datetime',
@@ -79,28 +82,34 @@ class TravelReport extends Model
     }
 
     /**
-     * Splits content into paragraph/heading blocks for rendering. A block is
-     * a subheading if its first line starts with "## " (the convention used
-     * by the admin editor and the AI writer); everything else is a paragraph.
-     * Avoids pulling in a Markdown parser for what is otherwise plain text.
+     * Builds a schema.org FAQPage entity from the stored FAQ pairs, or null
+     * if there are none - the show page adds this as a second JSON-LD block
+     * alongside the Article markup only when it has something to say.
      */
-    public function contentBlocks(): array
+    public function faqJsonLd(): ?array
     {
-        $blocks = preg_split('/\n\s*\n/', trim($this->content)) ?: [];
+        if (blank($this->faq)) {
+            return null;
+        }
 
-        return collect($blocks)
-            ->filter(fn ($block) => trim($block) !== '')
-            ->map(function ($block) {
-                $block = trim($block);
+        $entities = collect($this->faq)
+            ->filter(fn ($pair) => filled($pair['question'] ?? null) && filled($pair['answer'] ?? null))
+            ->map(fn ($pair) => [
+                '@type' => 'Question',
+                'name' => $pair['question'],
+                'acceptedAnswer' => ['@type' => 'Answer', 'text' => $pair['answer']],
+            ])
+            ->values();
 
-                if (str_starts_with($block, '## ')) {
-                    return ['type' => 'heading', 'text' => trim(substr($block, 3))];
-                }
+        if ($entities->isEmpty()) {
+            return null;
+        }
 
-                return ['type' => 'paragraph', 'text' => $block];
-            })
-            ->values()
-            ->all();
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'FAQPage',
+            'mainEntity' => $entities->all(),
+        ];
     }
 
     public function getReadingTimeMinutesAttribute(): int

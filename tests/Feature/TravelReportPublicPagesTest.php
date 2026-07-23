@@ -15,7 +15,7 @@ class TravelReportPublicPagesTest extends TestCase
         return TravelReport::create(array_merge([
             'title' => 'Ein Wochenende auf Föhr',
             'excerpt' => 'Ein ruhiges Winterwochenende auf der Insel.',
-            'content' => "Ein Absatz zum Einstieg.\n\n## Der erste Tag\n\nEs regnete den ganzen Vormittag.",
+            'content' => '<p>Ein Absatz zum Einstieg.</p><h2>Der erste Tag</h2><p>Es regnete den ganzen Vormittag.</p>',
             'author_name' => 'Anna',
             'is_published' => true,
             'published_at' => now(),
@@ -81,5 +81,54 @@ class TravelReportPublicPagesTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Ein ruhiges Winterwochenende auf der Insel.', false);
+    }
+
+    public function test_show_page_renders_content_as_raw_html(): void
+    {
+        $report = $this->report(['content' => '<h2>Anreise</h2><p>Mit der Fähre ab Dagebüll.</p>']);
+
+        $response = $this->get(route('reports.show', $report));
+
+        $response->assertOk();
+        $response->assertSee('<h2>Anreise</h2>', false);
+        $response->assertSee('Mit der Fähre ab Dagebüll.');
+    }
+
+    public function test_show_page_renders_faq_section_and_schema_when_present(): void
+    {
+        $report = $this->report([
+            'faq' => [['question' => 'Ist die Insel autofrei?', 'answer' => 'Weitgehend, mit Ausnahmen für Anwohner.']],
+        ]);
+
+        $response = $this->get(route('reports.show', $report));
+
+        $response->assertOk();
+        $response->assertSee('Häufig gestellte Fragen');
+        $response->assertSee('Ist die Insel autofrei?');
+        $response->assertSee('"@type":"FAQPage"', false);
+    }
+
+    public function test_show_page_does_not_render_faq_schema_when_empty(): void
+    {
+        $report = $this->report(['faq' => null]);
+
+        $response = $this->get(route('reports.show', $report));
+
+        $response->assertOk();
+        $response->assertDontSee('FAQPage', false);
+    }
+
+    public function test_show_page_uses_og_description_for_social_meta_when_set(): void
+    {
+        $report = $this->report([
+            'seo_description' => 'Meta-Beschreibung für Suchmaschinen.',
+            'og_description' => 'Einladender Text für Social-Media-Vorschauen.',
+        ]);
+
+        $response = $this->get(route('reports.show', $report));
+
+        $response->assertOk();
+        $response->assertSee('<meta property="og:description" content="Einladender Text für Social-Media-Vorschauen.">', false);
+        $response->assertSee('<meta name="description" content="Meta-Beschreibung für Suchmaschinen.">', false);
     }
 }

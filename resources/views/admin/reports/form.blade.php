@@ -3,6 +3,16 @@
 @php $isEdit = $report->exists; @endphp
 @section('title', $isEdit ? 'Reisebericht bearbeiten' : 'Reisebericht erstellen')
 
+@push('styles')
+    <link rel="stylesheet" href="https://unpkg.com/quill@2.0.3/dist/quill.snow.css">
+    <style>
+        #quill-toolbar { border-radius: 0.75rem 0.75rem 0 0; border-color: #e2cfa8; }
+        #quill-editor { border-radius: 0 0 0.75rem 0.75rem; border-color: #e2cfa8; font-size: 0.95rem; }
+        #quill-editor .ql-editor h2 { font-size: 1.25rem; font-weight: 600; }
+        #quill-editor .ql-editor h3 { font-size: 1.1rem; font-weight: 600; }
+    </style>
+@endpush
+
 @section('content')
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl font-semibold text-forest-900">{{ $isEdit ? 'Reisebericht bearbeiten: '.$report->title : 'Neuen Reisebericht erstellen' }}</h1>
@@ -11,27 +21,53 @@
         @endif
     </div>
 
+    @if (session('imageSuggestions') || session('internalLinkSuggestions'))
+        <div class="max-w-4xl mb-8 bg-forest-50 ring-1 ring-forest-200 rounded-2xl p-6 space-y-4 text-sm">
+            <h2 class="font-semibold text-forest-900">Vorschläge der KI (nur diese Anzeige, nicht gespeichert)</h2>
+            @if (session('imageSuggestions'))
+                <div>
+                    <p class="font-medium text-forest-800 mb-1">Bildmotive</p>
+                    <ul class="list-disc list-inside text-forest-700 space-y-0.5">
+                        @foreach (session('imageSuggestions') as $suggestion)
+                            <li>{{ $suggestion }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+            @if (session('internalLinkSuggestions'))
+                <div>
+                    <p class="font-medium text-forest-800 mb-1">Interne Verlinkungen</p>
+                    <ul class="list-disc list-inside text-forest-700 space-y-0.5">
+                        @foreach (session('internalLinkSuggestions') as $suggestion)
+                            <li>{{ $suggestion }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+        </div>
+    @endif
+
     @unless ($isEdit)
-        @if (\App\Support\OpenAiReportWriter::isConfigured())
+        @if (\App\Support\TravelReportWriter::isConfigured())
             <div class="max-w-4xl mb-8 bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-3">
-                <h2 class="font-semibold text-forest-900">Ganzen Bericht mit KI vorschlagen (OpenAI)</h2>
+                <h2 class="font-semibold text-forest-900">Ganzen Bericht mit KI vorschlagen ({{ ucfirst(\App\Support\TravelReportWriter::provider() === 'claude' ? 'Claude' : 'OpenAI') }})</h2>
                 <p class="text-sm text-forest-500">
-                    Erstellt aus einem Thema einen vollständigen Entwurf &ndash; Titel, Teaser, Text mit
-                    Zwischenüberschriften und SEO-Felder &ndash; und legt ihn unveröffentlicht an, damit du ihn direkt
+                    Erstellt aus einem Thema einen vollständigen Entwurf &ndash; Titel, Teaser, vollständigen
+                    Artikeltext, FAQ und SEO-Felder &ndash; und legt ihn unveröffentlicht an, damit du ihn direkt
                     danach prüfen und anpassen kannst.
                 </p>
                 <form action="{{ route('admin.reports.ai-draft') }}" method="POST" class="space-y-2">
                     @csrf
-                    <input type="text" name="ai_topic" required placeholder="Thema, z. B. Ein Wochenende auf Föhr im Winter" value="{{ old('ai_topic') }}" class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm">
+                    <input type="text" name="ai_topic" required placeholder="Thema, z. B. Südtirol als Reiseziel" value="{{ old('ai_topic') }}" class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm">
                     @error('ai_topic') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
-                    <textarea name="ai_context" rows="2" placeholder="Optionaler Kontext, z. B. besuchte Orte, Jahreszeit, besondere Erlebnisse" class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm">{{ old('ai_context') }}</textarea>
+                    <textarea name="ai_context" rows="2" placeholder="Optionaler Kontext, z. B. Schwerpunkte, Zielgruppe" class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm">{{ old('ai_context') }}</textarea>
                     <input type="text" name="ai_author_name" placeholder="Autor/in (optional, Standard: {{ auth()->user()->name }})" value="{{ old('ai_author_name') }}" class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm">
                     <button type="submit" class="rounded-xl bg-forest-700 hover:bg-forest-800 text-white text-sm font-semibold px-4 py-2">Entwurf erstellen</button>
                 </form>
             </div>
         @else
             <div class="max-w-4xl mb-8 bg-amber-50 ring-1 ring-amber-300 text-amber-900 rounded-2xl p-4 text-sm">
-                Kein OpenAI-API-Key hinterlegt &ndash; ein KI-Entwurf kann nicht erstellt werden. Key unter
+                Kein API-Key für den gewählten KI-Anbieter hinterlegt &ndash; ein KI-Entwurf kann nicht erstellt werden. Key unter
                 <a href="{{ route('admin.settings.edit') }}" class="underline font-medium">Einstellungen</a> hinterlegen,
                 oder den Bericht unten manuell anlegen.
             </div>
@@ -44,7 +80,7 @@
         </div>
     @endunless
 
-    <form action="{{ $isEdit ? route('admin.reports.update', $report) : route('admin.reports.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8 max-w-4xl">
+    <form id="report-form" action="{{ $isEdit ? route('admin.reports.update', $report) : route('admin.reports.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8 max-w-4xl">
         @csrf
         @if ($isEdit) @method('PUT') @endif
 
@@ -86,12 +122,79 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-3">
+        <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-3" x-data="reportEditor()">
             <h2 class="font-semibold text-forest-900">Inhalt *</h2>
             <p class="text-sm text-forest-500">
-                Absätze durch eine Leerzeile trennen. Eine Zeile, die mit <code>## </code> beginnt, wird als Zwischenüberschrift dargestellt.
+                Formatierung wie in einem Textverarbeitungsprogramm. Die beiden Zusatz-Buttons rechts fügen einen
+                Affiliate-Link (mit korrektem <code>rel="sponsored"</code>) bzw. einen beliebigen HTML-Block ein
+                (z. B. ein Werbe-/Partner-Snippet oder eine Tabelle).
             </p>
-            <textarea name="content" rows="18" required class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm font-mono">{{ old('content', $report->content) }}</textarea>
+
+            <div class="flex items-center justify-between flex-wrap gap-2">
+                <div id="quill-toolbar" class="flex-1 min-w-[280px]">
+                    <span class="ql-formats">
+                        <select class="ql-header">
+                            <option value="2">Überschrift 2</option>
+                            <option value="3">Überschrift 3</option>
+                            <option selected></option>
+                        </select>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-bold"></button>
+                        <button class="ql-italic"></button>
+                        <button class="ql-underline"></button>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-list" value="ordered"></button>
+                        <button class="ql-list" value="bullet"></button>
+                        <button class="ql-blockquote"></button>
+                        <button class="ql-link"></button>
+                    </span>
+                    <span class="ql-formats">
+                        <button class="ql-clean"></button>
+                    </span>
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" @click="openAffiliateLinkModal()" class="rounded-lg ring-1 ring-sand-300 hover:bg-sand-100 text-forest-700 text-xs font-semibold px-3 py-1.5 whitespace-nowrap">+ Affiliate-Link</button>
+                    <button type="button" @click="htmlBlockOpen = true" class="rounded-lg ring-1 ring-sand-300 hover:bg-sand-100 text-forest-700 text-xs font-semibold px-3 py-1.5 whitespace-nowrap">+ HTML-Block</button>
+                </div>
+            </div>
+
+            <div id="quill-editor" style="min-height: 420px;"></div>
+            <textarea name="content" id="content-input" required class="hidden">{{ old('content', $report->content) }}</textarea>
+
+            <div x-show="htmlBlockOpen" x-cloak class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-2xl p-6 max-w-lg w-full space-y-3" @click.outside="htmlBlockOpen = false">
+                    <h3 class="font-semibold text-forest-900">HTML-Block einfügen</h3>
+                    <p class="text-xs text-forest-500">Z. B. ein Affiliate-Werbeblock, ein Buchungs-Widget oder eine vorbereitete Tabelle.</p>
+                    <textarea x-model="htmlBlockValue" rows="8" class="w-full rounded-xl border border-sand-300 px-3 py-2 text-xs font-mono" placeholder="<div>...</div>"></textarea>
+                    <div class="flex justify-end gap-2">
+                        <button type="button" @click="htmlBlockOpen = false" class="rounded-xl px-4 py-2 text-sm text-forest-600">Abbrechen</button>
+                        <button type="button" @click="insertHtmlBlock()" class="rounded-xl bg-forest-700 hover:bg-forest-800 text-white text-sm font-semibold px-4 py-2">Einfügen</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-4" x-data="{ faqs: {{ old('faq') ? json_encode(old('faq')) : json_encode($report->faq ?? []) }} }">
+            <div>
+                <h2 class="font-semibold text-forest-900">Häufig gestellte Fragen (FAQ)</h2>
+                <p class="text-sm text-forest-500">Erscheinen auf der Seite als eigener Abschnitt und als FAQ-Schema.org-Markup für Suchmaschinen.</p>
+            </div>
+
+            <template x-for="(item, index) in faqs" :key="index">
+                <div class="rounded-xl border border-sand-200 p-4 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-medium text-forest-800">Frage</label>
+                        <button type="button" @click="faqs.splice(index, 1)" class="text-xs text-red-600">Entfernen</button>
+                    </div>
+                    <input type="text" :name="'faq['+index+'][question]'" x-model="item.question" class="w-full rounded-xl border border-sand-300 px-3 py-2 text-sm">
+                    <label class="block text-xs font-medium text-forest-800">Antwort</label>
+                    <textarea :name="'faq['+index+'][answer]'" x-model="item.answer" rows="2" class="w-full rounded-xl border border-sand-300 px-3 py-2 text-sm"></textarea>
+                </div>
+            </template>
+
+            <button type="button" @click="faqs.push({question: '', answer: ''})" class="rounded-xl ring-1 ring-sand-300 hover:bg-sand-100 text-forest-700 text-sm font-medium px-4 py-2">+ Frage hinzufügen</button>
         </div>
 
         <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-5">
@@ -142,8 +245,16 @@
                 <input type="text" name="seo_title" value="{{ old('seo_title', $report->seo_title) }}" class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm">
             </div>
             <div>
-                <label class="block text-sm font-medium text-forest-800 mb-1">SEO-Beschreibung</label>
-                <textarea name="seo_description" rows="2" class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm">{{ old('seo_description', $report->seo_description) }}</textarea>
+                <label class="block text-sm font-medium text-forest-800 mb-1">SEO-Beschreibung (Meta-Description, max. 155 Zeichen)</label>
+                <textarea name="seo_description" rows="2" maxlength="255" class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm">{{ old('seo_description', $report->seo_description) }}</textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-forest-800 mb-1">OpenGraph-Beschreibung (Social-Media-Vorschau)</label>
+                <textarea name="og_description" rows="2" maxlength="500" class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm">{{ old('og_description', $report->og_description) }}</textarea>
+                <p class="text-xs text-forest-500 mt-1">Leer lassen, um stattdessen die SEO-Beschreibung zu verwenden.</p>
+                @error('og_description')
+                    <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                @enderror
             </div>
         </div>
 
@@ -174,10 +285,10 @@
         @endforeach
     @endif
 
-    @if ($isEdit && \App\Support\OpenAiReportWriter::isConfigured())
+    @if ($isEdit && \App\Support\TravelReportWriter::isConfigured())
         <div class="max-w-4xl mt-8 bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-3">
-            <h2 class="font-semibold text-forest-900">Text mit KI generieren (OpenAI)</h2>
-            <p class="text-sm text-forest-500">Schreibt einen vollständigen, persönlich klingenden Reisebericht und ersetzt den Inhalt oben. Danach unbedingt prüfen und bei Bedarf anpassen.</p>
+            <h2 class="font-semibold text-forest-900">Text mit KI generieren ({{ ucfirst(\App\Support\TravelReportWriter::provider() === 'claude' ? 'Claude' : 'OpenAI') }})</h2>
+            <p class="text-sm text-forest-500">Schreibt den vollständigen Artikeltext neu und ersetzt den Inhalt oben. Danach unbedingt prüfen und bei Bedarf anpassen.</p>
             <form action="{{ route('admin.reports.ai-text', $report) }}" method="POST" class="space-y-2">
                 @csrf
                 <input type="text" name="ai_topic" required placeholder="Thema, z. B. Ein Wochenende auf Föhr im Winter" value="{{ old('ai_topic', $report->title) }}" class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm">
@@ -200,3 +311,81 @@
         </div>
     @endif
 @endsection
+
+@push('scripts')
+    <script src="https://unpkg.com/quill@2.0.3/dist/quill.js"></script>
+    <script>
+        // Quill only preserves markup it has a Delta representation for - a raw,
+        // unrecognized block-level tag (e.g. a <div> ad snippet) gets silently
+        // discarded the moment Quill re-syncs its model to the DOM. Registering it
+        // as an atomic embed blot instead makes Quill treat the whole HTML string
+        // as one opaque, always-preserved unit (not editable from the inside, same
+        // as an image embed).
+        const HtmlBlockBlot = Quill.import('blots/block/embed');
+        class ReportHtmlBlock extends HtmlBlockBlot {
+            static create(value) {
+                const node = super.create();
+                node.innerHTML = value;
+                node.setAttribute('contenteditable', 'false');
+                return node;
+            }
+            static value(node) {
+                return node.innerHTML;
+            }
+        }
+        ReportHtmlBlock.blotName = 'reportHtmlBlock';
+        ReportHtmlBlock.tagName = 'div';
+        ReportHtmlBlock.className = 'ql-report-html-block';
+        Quill.register(ReportHtmlBlock);
+
+        function reportEditor() {
+            return {
+                quill: null,
+                htmlBlockOpen: false,
+                htmlBlockValue: '',
+                init() {
+                    const input = document.getElementById('content-input');
+
+                    this.quill = new Quill(this.$el.querySelector('#quill-editor'), {
+                        theme: 'snow',
+                        modules: { toolbar: '#quill-toolbar' },
+                    });
+                    this.quill.clipboard.dangerouslyPasteHTML(input.value);
+
+                    // The hidden textarea is CSS-hidden, not the `hidden` attribute -
+                    // a required, display:none field silently blocks native form
+                    // submission before any 'submit' listener runs, so syncing only
+                    // at submit time is too late. Keep it live on every edit instead.
+                    const sync = () => { input.value = this.quill.root.innerHTML; };
+                    this.quill.on('text-change', sync);
+                    sync();
+                },
+                openAffiliateLinkModal() {
+                    const text = window.prompt('Anzeigetext des Links:');
+                    if (!text) return;
+                    const url = window.prompt('Ziel-URL (inkl. https://):');
+                    if (!url) return;
+
+                    const range = this.quill.getSelection(true);
+                    const anchor = document.createElement('a');
+                    anchor.href = url;
+                    anchor.target = '_blank';
+                    anchor.rel = 'sponsored noopener';
+                    anchor.textContent = text;
+                    this.quill.clipboard.dangerouslyPasteHTML(range.index, anchor.outerHTML);
+                },
+                insertHtmlBlock() {
+                    if (!this.htmlBlockValue.trim()) {
+                        this.htmlBlockOpen = false;
+                        return;
+                    }
+                    const range = this.quill.getSelection(true) || { index: this.quill.getLength() };
+                    this.quill.insertEmbed(range.index, 'reportHtmlBlock', this.htmlBlockValue, 'user');
+                    this.quill.setSelection(range.index + 1, 0);
+                    this.htmlBlockValue = '';
+                    this.htmlBlockOpen = false;
+                },
+            };
+        }
+    </script>
+@endpush

@@ -15,7 +15,7 @@ class TravelReportModelTest extends TestCase
         return TravelReport::create(array_merge([
             'title' => 'Ein Wochenende auf Föhr',
             'excerpt' => 'Kurz und knackig',
-            'content' => "Ein Absatz zum Einstieg.\n\n## Der erste Tag\n\nEs regnete den ganzen Vormittag.\n\n## Der Abend\n\nWir haben Fisch gegessen.",
+            'content' => '<p>Ein Absatz zum Einstieg.</p><h2>Der erste Tag</h2><p>Es regnete den ganzen Vormittag.</p>',
             'author_name' => 'Anna',
         ], $overrides));
     }
@@ -35,19 +35,45 @@ class TravelReportModelTest extends TestCase
         $this->assertSame('ein-wochenende-auf-foehr-2', $second->slug);
     }
 
-    public function test_content_blocks_splits_paragraphs_and_headings(): void
+    public function test_content_is_stored_and_returned_as_html(): void
     {
         $report = $this->makeReport();
 
-        $blocks = $report->contentBlocks();
+        $this->assertStringContainsString('<h2>Der erste Tag</h2>', $report->content);
+    }
 
-        $this->assertSame([
-            ['type' => 'paragraph', 'text' => 'Ein Absatz zum Einstieg.'],
-            ['type' => 'heading', 'text' => 'Der erste Tag'],
-            ['type' => 'paragraph', 'text' => 'Es regnete den ganzen Vormittag.'],
-            ['type' => 'heading', 'text' => 'Der Abend'],
-            ['type' => 'paragraph', 'text' => 'Wir haben Fisch gegessen.'],
-        ], $blocks);
+    public function test_faq_is_cast_to_an_array(): void
+    {
+        $report = $this->makeReport([
+            'faq' => [['question' => 'Wann ist beste Reisezeit?', 'answer' => 'Zwischen Mai und September.']],
+        ]);
+
+        $this->assertIsArray($report->fresh()->faq);
+        $this->assertSame('Wann ist beste Reisezeit?', $report->fresh()->faq[0]['question']);
+    }
+
+    public function test_faq_json_ld_returns_null_without_faq(): void
+    {
+        $report = $this->makeReport();
+
+        $this->assertNull($report->faqJsonLd());
+    }
+
+    public function test_faq_json_ld_builds_faq_page_schema(): void
+    {
+        $report = $this->makeReport([
+            'faq' => [
+                ['question' => 'Wann ist beste Reisezeit?', 'answer' => 'Zwischen Mai und September.'],
+                ['question' => 'Gibt es Parkplätze?', 'answer' => 'Ja, mehrere bewirtschaftete Parkplätze.'],
+            ],
+        ]);
+
+        $jsonLd = $report->faqJsonLd();
+
+        $this->assertSame('FAQPage', $jsonLd['@type']);
+        $this->assertCount(2, $jsonLd['mainEntity']);
+        $this->assertSame('Wann ist beste Reisezeit?', $jsonLd['mainEntity'][0]['name']);
+        $this->assertSame('Zwischen Mai und September.', $jsonLd['mainEntity'][0]['acceptedAnswer']['text']);
     }
 
     public function test_reading_time_is_computed_from_word_count(): void

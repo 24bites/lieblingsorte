@@ -21,6 +21,9 @@ class AiUsageTracker
     private const PRICE_PER_MILLION_TOKENS = [
         'gpt-4o-mini' => [0.15, 0.60],
         'gpt-4o' => [2.50, 10.00],
+        'claude-sonnet-5' => [3.00, 15.00],
+        'claude-haiku-4-5' => [0.80, 4.00],
+        'claude-opus-4-8' => [15.00, 75.00],
     ];
 
     /** USD per generated image at the default 1024x1024 size. */

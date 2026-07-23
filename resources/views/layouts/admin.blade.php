@@ -33,6 +33,7 @@
     </script>
     <script defer src="https://unpkg.com/alpinejs@3.14.1/dist/cdn.min.js"></script>
     <style>[x-cloak]{display:none!important}</style>
+    @stack('styles')
 </head>
 <body class="bg-sand-50 text-forest-900 antialiased" x-data="{ sidebarOpen: false }">
     <div class="lg:hidden flex items-center justify-between bg-forest-900 text-white px-4 h-14">
@@ -109,5 +110,7 @@
             </main>
         </div>
     </div>
+
+    @stack('scripts')
 </body>
 </html>

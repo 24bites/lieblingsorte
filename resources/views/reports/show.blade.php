@@ -3,6 +3,7 @@
 @php
     $seoTitle = $report->seo_title ?: $report->title.' | '.\App\Models\Setting::get('site_name', 'Lieblingsorte');
     $seoDescription = $report->seo_description ?: $report->excerpt;
+    $ogDescription = $report->og_description ?: $seoDescription;
     $seoImage = $report->coverImage()?->url;
     $ogType = 'article';
     $articlePublishedTime = $report->published_at?->toAtomString();
@@ -24,10 +25,15 @@
     if ($seoImage) {
         $jsonLd['image'] = $seoImage;
     }
+
+    $faqJsonLd = $report->faqJsonLd();
 @endphp
 
 @push('structured-data')
     <script type="application/ld+json">{!! json_encode($jsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    @if ($faqJsonLd)
+        <script type="application/ld+json">{!! json_encode($faqJsonLd, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+    @endif
 @endpush
 
 @section('content')
@@ -61,15 +67,26 @@
 
         <x-gallery :media="$report->media" :alt="$report->title" />
 
-        <div class="prose prose-forest max-w-none space-y-5">
-            @foreach ($report->contentBlocks() as $block)
-                @if ($block['type'] === 'heading')
-                    <h2 class="font-display text-2xl font-semibold text-forest-900 !mb-2">{{ $block['text'] }}</h2>
-                @else
-                    <p class="text-forest-700 leading-relaxed">{{ $block['text'] }}</p>
-                @endif
-            @endforeach
+        <div class="prose prose-lg max-w-none prose-headings:font-display prose-headings:text-forest-900 prose-p:text-forest-700 prose-a:text-forest-700 prose-a:no-underline hover:prose-a:underline prose-img:rounded-2xl prose-td:align-top">
+            {!! $report->content !!}
         </div>
+
+        @if ($report->faq)
+            <div class="border-t border-sand-200 pt-8">
+                <h2 class="font-display text-2xl font-semibold text-forest-900 mb-4">Häufig gestellte Fragen</h2>
+                <div class="space-y-2">
+                    @foreach ($report->faq as $pair)
+                        <details class="group rounded-xl ring-1 ring-sand-200 p-4">
+                            <summary class="cursor-pointer font-medium text-forest-900 marker:content-none flex items-center justify-between gap-2">
+                                {{ $pair['question'] }}
+                                <span class="text-forest-400 group-open:rotate-180 transition-transform">⌄</span>
+                            </summary>
+                            <p class="text-forest-700 mt-3">{{ $pair['answer'] }}</p>
+                        </details>
+                    @endforeach
+                </div>
+            </div>
+        @endif
     </div>
 
     @if ($similarReports->isNotEmpty())

@@ -8,7 +8,7 @@ use App\Models\Region;
 use App\Models\TravelReport;
 use App\Support\ImageUploadService;
 use App\Support\OpenAiImageGenerator;
-use App\Support\OpenAiReportWriter;
+use App\Support\TravelReportWriter;
 use Illuminate\Http\Request;
 use Throwable;
 
@@ -87,10 +87,15 @@ class TravelReportController extends Controller
         set_time_limit(120);
 
         try {
-            $draft = OpenAiReportWriter::draft($data['ai_topic'], $data['ai_context'] ?? null);
+            $draft = TravelReportWriter::draft($data['ai_topic'], $data['ai_context'] ?? null);
         } catch (Throwable $e) {
             return back()->withErrors(['ai_topic' => $e->getMessage()])->withInput();
         }
+
+        $faq = collect($draft['faq'] ?? [])
+            ->filter(fn ($pair) => filled($pair['question'] ?? null) && filled($pair['answer'] ?? null))
+            ->values()
+            ->all();
 
         $report = TravelReport::create([
             'title' => $draft['title'],
@@ -99,12 +104,16 @@ class TravelReportController extends Controller
             'author_name' => filled($data['ai_author_name'] ?? null) ? $data['ai_author_name'] : $request->user()->name,
             'seo_title' => $draft['seo_title'] ?? null,
             'seo_description' => $draft['seo_description'] ?? null,
+            'og_description' => $draft['og_description'] ?? null,
+            'faq' => $faq,
             'is_published' => false,
             'ai_generated' => true,
         ]);
 
         return redirect()->route('admin.reports.edit', $report)
-            ->with('status', 'KI-Entwurf wurde erstellt (unveröffentlicht). Bitte alle Angaben prüfen, bevor du den Bericht veröffentlichst.');
+            ->with('status', 'KI-Entwurf wurde erstellt (unveröffentlicht). Bitte alle Angaben prüfen, bevor du den Bericht veröffentlichst.')
+            ->with('imageSuggestions', $draft['image_suggestions'] ?? [])
+            ->with('internalLinkSuggestions', $draft['internal_link_suggestions'] ?? []);
     }
 
     public function generateAiText(Request $request, TravelReport $report)
@@ -117,7 +126,7 @@ class TravelReportController extends Controller
         set_time_limit(120);
 
         try {
-            $content = OpenAiReportWriter::write(
+            $content = TravelReportWriter::write(
                 $request->string('ai_topic')->toString(),
                 $request->string('ai_context')->toString() ?: null,
             );

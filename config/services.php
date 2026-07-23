@@ -41,4 +41,9 @@ return [
         'text_model' => env('OPENAI_TEXT_MODEL', 'gpt-4o-mini'),
     ],
 
+    'anthropic' => [
+        'key' => env('ANTHROPIC_API_KEY'),
+        'text_model' => env('ANTHROPIC_TEXT_MODEL', 'claude-sonnet-5'),
+    ],
+
 ];

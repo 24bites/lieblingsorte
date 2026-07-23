@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Support\AiCronSettings;
+use App\Support\AnthropicConfig;
 use App\Support\OpenAiConfig;
 use App\Support\PinterestConfig;
 use App\Support\ResendConfig;
 use App\Support\TelegramConfig;
+use App\Support\TravelReportWriter;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class SettingController extends Controller
 {
@@ -59,6 +62,10 @@ class SettingController extends Controller
         $pinterestConnected = PinterestConfig::isConfigured();
         $pinterestAccountUsername = PinterestConfig::accountUsername();
 
+        $reportAiProvider = TravelReportWriter::provider();
+        $anthropicKeyPreview = AnthropicConfig::preview();
+        $anthropicConfigured = $anthropicKeyPreview !== null;
+
         return view('admin.settings.edit', compact(
             'settings', 'openaiKeyConfigured', 'openaiKeyPreview', 'aiCrons',
             'telegramConfigured', 'telegramTokenPreview', 'telegramChatId',
@@ -66,6 +73,7 @@ class SettingController extends Controller
             'pinterestCaptionsEnabled',
             'pinterestAppId', 'pinterestAppConfigured', 'pinterestAppSecretPreview',
             'pinterestConnected', 'pinterestAccountUsername',
+            'reportAiProvider', 'anthropicConfigured', 'anthropicKeyPreview',
         ));
     }
 
@@ -91,6 +99,9 @@ class SettingController extends Controller
             'pinterest_app_id' => ['nullable', 'string', 'max:255'],
             'pinterest_app_secret' => ['nullable', 'string', 'max:255'],
             'remove_pinterest_app' => ['nullable', 'boolean'],
+            'report_ai_provider' => ['nullable', Rule::in(TravelReportWriter::PROVIDERS)],
+            'anthropic_api_key' => ['nullable', 'string', 'max:255'],
+            'remove_anthropic_api_key' => ['nullable', 'boolean'],
             'newsletter_footer_visible' => ['nullable', 'boolean'],
             'images_ai_replace_enabled' => ['nullable', 'boolean'],
             'images_ai_replace_interval' => ['required', 'integer', 'min:1', 'max:59'],
@@ -130,11 +141,18 @@ class SettingController extends Controller
             PinterestConfig::storeAppCredentials(trim($data['pinterest_app_id']), trim($data['pinterest_app_secret']));
         }
 
+        if ($request->boolean('remove_anthropic_api_key')) {
+            AnthropicConfig::clear();
+        } elseif (filled($data['anthropic_api_key'] ?? null)) {
+            AnthropicConfig::store(trim($data['anthropic_api_key']));
+        }
+
         unset(
             $data['openai_api_key'], $data['remove_openai_api_key'],
             $data['telegram_bot_token'], $data['telegram_chat_id'], $data['remove_telegram'],
             $data['resend_api_key'], $data['remove_resend_api_key'],
             $data['pinterest_app_id'], $data['pinterest_app_secret'], $data['remove_pinterest_app'],
+            $data['anthropic_api_key'], $data['remove_anthropic_api_key'],
             $data['newsletter_footer_visible'],
             $data['images_ai_replace_enabled'], $data['images_ai_replace_interval'],
             $data['regions_auto_generate_enabled'], $data['regions_auto_generate_interval'],
