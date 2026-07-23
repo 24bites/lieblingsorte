@@ -27,6 +27,10 @@
                 <label class="block text-sm font-medium text-forest-800 mb-1">Kontakt-E-Mail</label>
                 <input type="email" name="contact_email" value="{{ old('contact_email', $settings['contact_email']) }}" required class="w-full rounded-xl border border-sand-300 px-4 py-2.5 text-sm">
             </div>
+            <label class="flex items-center gap-2 text-sm text-forest-700">
+                <input type="checkbox" name="newsletter_footer_visible" value="1" class="rounded text-forest-600" {{ old('newsletter_footer_visible', $newsletterFooterVisible) ? 'checked' : '' }}>
+                Newsletter-Anmeldung im Footer anzeigen
+            </label>
         </div>
 
         <div class="bg-white rounded-2xl ring-1 ring-sand-200 p-6 space-y-5">

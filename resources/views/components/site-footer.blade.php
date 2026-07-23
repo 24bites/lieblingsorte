@@ -5,7 +5,9 @@
             <p class="mt-3 text-sand-200 max-w-sm text-sm leading-relaxed">
                 {{ \App\Models\Setting::get('site_description', 'Handverlesene Lieblingsorte, echte Geheimtipps und besondere Erlebnisse.') }}
             </p>
-            <x-newsletter-form class="mt-6" />
+            @if (\App\Models\Setting::get('newsletter_footer_visible', '1') === '1')
+                <x-newsletter-form class="mt-6" />
+            @endif
         </div>
 
         <div>

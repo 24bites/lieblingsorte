@@ -33,6 +33,8 @@ class SettingController extends Controller
         $resendKeyPreview = ResendConfig::preview();
         $resendConfigured = $resendKeyPreview !== null;
 
+        $newsletterFooterVisible = Setting::get('newsletter_footer_visible', '1') === '1';
+
         $aiCrons = [
             'images_ai_replace' => [
                 'enabled' => AiCronSettings::enabled(AiCronSettings::IMAGES_AI_REPLACE),
@@ -51,7 +53,7 @@ class SettingController extends Controller
         return view('admin.settings.edit', compact(
             'settings', 'openaiKeyConfigured', 'openaiKeyPreview', 'aiCrons',
             'telegramConfigured', 'telegramTokenPreview', 'telegramChatId',
-            'resendConfigured', 'resendKeyPreview',
+            'resendConfigured', 'resendKeyPreview', 'newsletterFooterVisible',
         ));
     }
 
@@ -73,6 +75,7 @@ class SettingController extends Controller
             'remove_telegram' => ['nullable', 'boolean'],
             'resend_api_key' => ['nullable', 'string', 'max:255'],
             'remove_resend_api_key' => ['nullable', 'boolean'],
+            'newsletter_footer_visible' => ['nullable', 'boolean'],
             'images_ai_replace_enabled' => ['nullable', 'boolean'],
             'images_ai_replace_interval' => ['required', 'integer', 'min:1', 'max:59'],
             'regions_auto_generate_enabled' => ['nullable', 'boolean'],
@@ -108,10 +111,13 @@ class SettingController extends Controller
             $data['openai_api_key'], $data['remove_openai_api_key'],
             $data['telegram_bot_token'], $data['telegram_chat_id'], $data['remove_telegram'],
             $data['resend_api_key'], $data['remove_resend_api_key'],
+            $data['newsletter_footer_visible'],
             $data['images_ai_replace_enabled'], $data['images_ai_replace_interval'],
             $data['regions_auto_generate_enabled'], $data['regions_auto_generate_interval'],
             $data['regions_complete_content_enabled'], $data['regions_complete_content_interval'],
         );
+
+        Setting::set('newsletter_footer_visible', $request->boolean('newsletter_footer_visible') ? '1' : '0');
 
         AiCronSettings::setEnabled(AiCronSettings::IMAGES_AI_REPLACE, $request->boolean('images_ai_replace_enabled'));
         AiCronSettings::setIntervalMinutes(AiCronSettings::IMAGES_AI_REPLACE, (int) $request->input('images_ai_replace_interval'));
